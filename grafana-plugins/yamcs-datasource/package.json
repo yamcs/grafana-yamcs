@@ -1,0 +1,27 @@
+{
+  "name": "space-applications-services-yamcs-datasource",
+  "version": "1.0.0",
+  "description": "A custom plugin allowing Yamcs as a datasource",
+  "scripts": {
+    "build": "grafana-toolkit plugin:build",
+    "test": "grafana-toolkit plugin:test",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev --watch"
+  },
+  "author": "Florian Ilzkovitz",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@grafana/data": "7.0.1",
+    "@grafana/toolkit": "7.0.1",
+    "@grafana/ui": "7.0.1",
+    "@testing-library/jest-dom": "5.4.0",
+    "@testing-library/react": "^10.0.2",
+    "@types/lodash": "latest"
+  },
+  "engines": {
+    "node": ">=12 <13"
+  },
+  "dependencies": {
+    "axios": "^0.19.2"
+  }
+}
