@@ -9,7 +9,7 @@ Yamcs source code and installation instructions can be found on GitHub [here](ht
 
 
 
-Then, edit this configuration file to allow cross-site access [temporary solution]: 
+Then, edit this configuration file to allow cross-site access [temporary solution]:
 ```/yamcs/examples/simulation/src/main/yamcs/etc/yamcs.yaml```
 
 Add the *cors* to the *services* tag  :
@@ -44,9 +44,10 @@ Run the yamcs simulator in one terminal :
 cd ~/yamcs
 ./run-example.sh simulation
 ```
-Run this command in an other terminal (the first time and after modifications of the plugin source code) :
+Run these commands in an other terminal :
 ```bash
 cd ~/yamcs/grafana/grafana-plugins/yamcs-datasource
+yarn install
 yarn dev
 sudo systemctl restart grafana-server
 ```
