@@ -1,0 +1,64 @@
+# Yamcs-Grafana
+
+This repository contains a Grafana plugin allowing the use of Yamcs as a Datasource.
+
+## Installation
+
+### Yamcs
+Yamcs source code and installation instructions can be found on GitHub [here](https://github.com/yamcs/yamcs).
+
+
+
+Then, edit this configuration file to allow cross-site access [temporary solution]: 
+```/yamcs/examples/simulation/src/main/yamcs/etc/yamcs.yaml```
+
+Add the *cors* to the *services* tag  :
+```yaml
+services:
+  - class: org.yamcs.http.HttpServer
+    args:
+      port: 8090
+      cors:
+        allowOrigin: "*"
+        allowCredentials: false
+```
+
+### Grafana
+
+Follow [these](https://grafana.com/docs/grafana/latest/getting-started/getting-started/) instructions to install and setup Grafana.
+
+Then, edit the Grafana configuration file :
+```/etc/grafana/grafana.ini ```
+
+In the *paths* section, change the plugin directory to :
+```ini
+[paths]
+# Directory where grafana will automatically scan and look for plugins
+plugins = ~/yamcs-grafana/grafana-plugins
+```
+
+
+## Usage
+Run the yamcs simulator in one terminal :
+```bash
+cd ~/yamcs
+./run-example.sh simulation
+```
+Run this command in an other terminal (the first time and after modifications of the plugin source code) :
+```bash
+cd ~/yamcs/grafana/grafana-plugins/yamcs-datasource
+yarn dev
+sudo systemctl restart grafana-server
+```
+On ```localhost:3000``` you should find the Grafana homepage.
+
+Add a datasource : on ```localhost:3000/datasources ``` -> add a datasource -> search for *yamcs-datasource*.
+
+You should now be able to select this datasource when editing a dashboard panel.
+
+
+## Contributing
+
+
+## License
+
