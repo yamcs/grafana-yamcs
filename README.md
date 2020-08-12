@@ -46,7 +46,7 @@ cd ~/yamcs
 ```
 Run these commands in an other terminal :
 ```bash
-cd ~/yamcs/grafana/grafana-plugins/yamcs-datasource
+cd ~/yamcs-grafana/grafana-plugins/yamcs-datasource
 yarn install
 yarn dev
 sudo systemctl restart grafana-server
