@@ -34,9 +34,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           fields: [
             // basic plot data : value wrt time
             { name: 'time', type: FieldType.time },
-            { name: 'value', type: FieldType.number },
+            { name: 'value', type: FieldType.number, config: { displayName: query.param } },
           ],
         });
+        console.log('FRAME');
+
+        console.log(frame);
 
         const routePath = '/yamcs';
         const baseUrl = this.url + routePath + '/api/archive/simulator/parameters/YSS/SIMULATOR/';

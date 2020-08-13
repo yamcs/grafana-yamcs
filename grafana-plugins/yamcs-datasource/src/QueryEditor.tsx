@@ -29,7 +29,6 @@ export class QueryEditor extends PureComponent<Props> {
     if (!isUpdated) {
       isUpdated = true;
       return new Promise<Array<SelectableValue<string | undefined>>>(resolve => {
-        
         const proxyUrl = this.props.datasource.url;
         const routePath = '/yamcs';
         const url = proxyUrl + routePath + '/api/mdb/simulator/parameters?system=/YSS/SIMULATOR&pos=0&limit=100';
