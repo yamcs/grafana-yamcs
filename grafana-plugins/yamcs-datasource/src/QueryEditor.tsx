@@ -1,12 +1,12 @@
 import defaults from 'lodash/defaults';
 
+import { getBackendSrv } from '@grafana/runtime';
 // import React, { ChangeEvent, PureComponent } from 'react';
 import React, { PureComponent } from 'react';
 import { LegacyForms, InlineFormLabel } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from './DataSource';
 import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
-import axios from 'axios';
 // const { FormField } = LegacyForms;
 const { AsyncSelect } = LegacyForms;
 
@@ -32,14 +32,21 @@ export class QueryEditor extends PureComponent<Props> {
       isUpdated = true;
       return new Promise<Array<SelectableValue<string | undefined>>>(resolve => {
         const url = 'http://localhost:8090/api/mdb/simulator/parameters?system=/YSS/SIMULATOR&pos=0&limit=100';
-        axios.get(url).then(({ data }: any) => {
-          let res: Array<SelectableValue<string | undefined>> = [{ label: 'No parameter', value: undefined }];
-          data.parameters.forEach(({ name }: { name: string }) => {
-            res.push({ label: name, value: name });
+
+        getBackendSrv()
+          .datasourceRequest({
+            url: url,
+            method: 'GET',
+          })
+          .then(({ data }: any) => {
+            let res: Array<SelectableValue<string | undefined>> = [{ label: 'No parameter', value: undefined }];
+            data.parameters.forEach(({ name }: { name: string }) => {
+              res.push({ label: name, value: name });
+            });
+            options = res;
+            resolve(res);
           });
-          options = res;
-          resolve(res);
-        });
+
       });
     }
     // return the parameters otherwise.

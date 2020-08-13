@@ -1,5 +1,6 @@
 import defaults from 'lodash/defaults';
-import axios from 'axios';
+
+import { getBackendSrv } from '@grafana/runtime';
 
 import {
   DataQueryRequest,
@@ -14,11 +15,18 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+    console.log('instanceSettings');
+
+    console.log(instanceSettings);
+
     super(instanceSettings);
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { range, maxDataPoints } = options;
+    console.log('options');
+    console.log(options);
+
     const from = range!.from.valueOf();
     const to = range!.to.valueOf();
 
@@ -46,7 +54,12 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
         const url = `${baseUrl}${param}/samples?start=${start}&stop=${end}&count=${count}`;
 
-        let response = await axios.get(url);
+        let response = await getBackendSrv().datasourceRequest({
+          url: url,
+          method: 'GET',
+        });
+        console.log('RESPONSE');
+
         console.log(response);
 
         if (!response || !response.data || !response.data.sample) {

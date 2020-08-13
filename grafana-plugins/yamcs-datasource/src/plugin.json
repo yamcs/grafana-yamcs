@@ -33,5 +33,11 @@
   "dependencies": {
     "grafanaVersion": "6.5.x",
     "plugins": []
-  }
+  },
+  "routes": [
+    {
+      "path": "yamcs",
+      "url": "localhost:8090"
+    }
+  ]
 }
