@@ -1,7 +1,7 @@
 import defaults from 'lodash/defaults';
 
 import { getBackendSrv } from '@grafana/runtime';
-
+import { setProxyUrl } from './QueryEditor';
 import {
   DataQueryRequest,
   DataQueryResponse,
@@ -14,18 +14,16 @@ import {
 import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+  url?: string;
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
-    console.log('instanceSettings');
-
-    console.log(instanceSettings);
 
     super(instanceSettings);
+    this.url = instanceSettings.url;
+    setProxyUrl(this.url);
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
     const { range, maxDataPoints } = options;
-    console.log('options');
-    console.log(options);
 
     const from = range!.from.valueOf();
     const to = range!.to.valueOf();
@@ -43,7 +41,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           ],
         });
 
-        const baseUrl = 'http://localhost:8090/api/archive/simulator/parameters/YSS/SIMULATOR/';
+        const routePath = '/yamcs';
+        const baseUrl = this.url + routePath + '/api/archive/simulator/parameters/YSS/SIMULATOR/';
+
         const param = query.param;
         if (!param) {
           return frame;
@@ -58,13 +58,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           url: url,
           method: 'GET',
         });
-        console.log('RESPONSE');
-
-        console.log(response);
 
         if (!response || !response.data || !response.data.sample) {
-          console.log('resp undefined');
-
           return frame;
         }
         let ls = response.data.sample;
@@ -96,18 +91,16 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async testDatasource() {
     // Implement a health check for your data source.
 
-    const start = 1596631034086; // grafana query from user
-    const end = 1596631334086; // grafana query from user
+    const routePath = '/yamcs';
+    const url =
+      this.url +
+      routePath +
+      '/api/archive/simulator/parameters/YSS/SIMULATOR/Psi/samples?start=2020-08-05T12:37:14.086Z&stop=2020-08-05T12:42:14.086Z&count=10';
 
-    const baseUrl = 'http://localhost:8090/api/archive/simulator/parameters/YSS/SIMULATOR/';
-    const param = 'Psi';
-    const startUrl = this.timestampToYamcs(start);
-    const endUrl = this.timestampToYamcs(end);
-    const count = 10;
-
-    const url = `${baseUrl}${param}/samples?start=${startUrl}&stop=${endUrl}&count=${count}`;
-
-    console.log(url);
+    let res = await getBackendSrv().datasourceRequest({
+      url: url,
+      method: 'GET',
+    });
 
     return {
       status: 'success',

@@ -1,4 +1,10 @@
 {
+  "routes": [
+    {
+      "path": "yamcs",
+      "url": "http://localhost:8090"
+    },
+  ],
   "type": "datasource",
   "name": "yamcs-datasource",
   "id": "space-applications-services-yamcs-datasource",
@@ -33,11 +39,5 @@
   "dependencies": {
     "grafanaVersion": "6.5.x",
     "plugins": []
-  },
-  "routes": [
-    {
-      "path": "yamcs",
-      "url": "localhost:8090"
-    }
-  ]
+  }
 }

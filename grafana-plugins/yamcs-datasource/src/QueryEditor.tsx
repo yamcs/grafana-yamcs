@@ -15,6 +15,11 @@ type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 let options: Array<SelectableValue<string | undefined>> = [{ label: 'No parameter', value: undefined }];
 
 let isUpdated = false;
+let proxyUrl: string | undefined = '';
+
+export const setProxyUrl = function(val: string | undefined) {
+  proxyUrl = val;
+};
 
 export class QueryEditor extends PureComponent<Props> {
   filterOptions = (input: string) => {
@@ -25,13 +30,13 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   loadAsyncOptions = (input: string) => {
-    // console.log(`called and updated is ${isUpdated}`);
 
     // fetch the parameters only the first time. Will trigger again if the browser page is refreshed.
     if (!isUpdated) {
       isUpdated = true;
       return new Promise<Array<SelectableValue<string | undefined>>>(resolve => {
-        const url = 'http://localhost:8090/api/mdb/simulator/parameters?system=/YSS/SIMULATOR&pos=0&limit=100';
+        const routePath = '/yamcs';
+        const url = proxyUrl + routePath + '/api/mdb/simulator/parameters?system=/YSS/SIMULATOR&pos=0&limit=100';
 
         getBackendSrv()
           .datasourceRequest({
@@ -46,7 +51,6 @@ export class QueryEditor extends PureComponent<Props> {
             options = res;
             resolve(res);
           });
-
       });
     }
     // return the parameters otherwise.
