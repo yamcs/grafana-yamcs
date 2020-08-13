@@ -8,21 +8,6 @@ This repository contains a Grafana plugin allowing the use of Yamcs as a Datasou
 Yamcs source code and installation instructions can be found on GitHub [here](https://github.com/yamcs/yamcs).
 
 
-
-Then, edit this configuration file to allow cross-site access [temporary solution]:
-```/yamcs/examples/simulation/src/main/yamcs/etc/yamcs.yaml```
-
-Add the *cors* to the *services* tag  :
-```yaml
-services:
-  - class: org.yamcs.http.HttpServer
-    args:
-      port: 8090
-      cors:
-        allowOrigin: "*"
-        allowCredentials: false
-```
-
 ### Grafana
 
 Follow [these](https://grafana.com/docs/grafana/latest/getting-started/getting-started/) instructions to install and setup Grafana.
@@ -62,4 +47,3 @@ You should now be able to select this datasource when editing a dashboard panel.
 
 
 ## License
-
