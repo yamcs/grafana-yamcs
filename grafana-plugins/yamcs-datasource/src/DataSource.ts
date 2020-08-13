@@ -1,7 +1,6 @@
 import defaults from 'lodash/defaults';
 
 import { getBackendSrv } from '@grafana/runtime';
-import { setProxyUrl } from './QueryEditor';
 import {
   DataQueryRequest,
   DataQueryResponse,
@@ -16,10 +15,8 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   url?: string;
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
-
     super(instanceSettings);
     this.url = instanceSettings.url;
-    setProxyUrl(this.url);
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -97,7 +94,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       routePath +
       '/api/archive/simulator/parameters/YSS/SIMULATOR/Psi/samples?start=2020-08-05T12:37:14.086Z&stop=2020-08-05T12:42:14.086Z&count=10';
 
-    let res = await getBackendSrv().datasourceRequest({
+    await getBackendSrv().datasourceRequest({
       url: url,
       method: 'GET',
     });
