@@ -1,6 +1,7 @@
 import defaults from 'lodash/defaults';
 
 import { getBackendSrv } from '@grafana/runtime';
+import { setParameterPath, setIsUpdated } from './QueryEditor';
 import {
   DataQueryRequest,
   DataQueryResponse,
@@ -14,9 +15,12 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   url?: string;
+  parameterPath?: string;
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
+    this.parameterPath = instanceSettings.jsonData.path;
+    setParameterPath(this.parameterPath);
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -37,12 +41,9 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
             { name: 'value', type: FieldType.number, config: { displayName: query.param } },
           ],
         });
-        console.log('FRAME');
 
-        console.log(frame);
-
-        const routePath = '/yamcs';
-        const baseUrl = this.url + routePath + '/api/archive/simulator/parameters/YSS/SIMULATOR/';
+        const routePath = '/samples';
+        const baseUrl = this.url + routePath + this.parameterPath;
 
         const param = query.param;
         if (!param) {
@@ -52,7 +53,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const end = this.timestampToYamcs(to);
         const count = maxDataPoints;
 
-        const url = `${baseUrl}${param}/samples?start=${start}&stop=${end}&count=${count}`;
+        const url = `${baseUrl}/${param}/samples?start=${start}&stop=${end}&count=${count}`;
 
         let response = await getBackendSrv().datasourceRequest({
           url: url,
@@ -90,17 +91,17 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async testDatasource() {
     // Implement a health check for your data source.
-
-    const routePath = '/yamcs';
-    const url =
-      this.url +
-      routePath +
-      '/api/archive/simulator/parameters/YSS/SIMULATOR/Psi/samples?start=2020-08-05T12:37:14.086Z&stop=2020-08-05T12:42:14.086Z&count=10';
-
-    await getBackendSrv().datasourceRequest({
-      url: url,
-      method: 'GET',
-    });
+    setIsUpdated(false);
+    // const routePath = '/yamcs';
+    // const url =
+    //   this.url +
+    //   routePath +
+    //   '/api/archive/simulator/parameters/YSS/SIMULATOR/Psi/samples?start=2020-08-05T12:37:14.086Z&stop=2020-08-05T12:42:14.086Z&count=10';
+    //
+    // await getBackendSrv().datasourceRequest({
+    //   url: url,
+    //   method: 'GET',
+    // });
 
     return {
       status: 'success',

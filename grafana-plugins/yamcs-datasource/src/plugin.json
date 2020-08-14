@@ -1,8 +1,12 @@
 {
   "routes": [
     {
-      "path": "yamcs",
-      "url": "http://localhost:8090"
+      "path": "param",
+      "url": "http://localhost:8090/api/mdb/{{ .JsonData.instance }}/parameters"
+    },
+    {
+      "path": "samples",
+      "url": "http://localhost:8090/api/archive/{{ .JsonData.instance }}/parameters"
     }
   ],
   "type": "datasource",

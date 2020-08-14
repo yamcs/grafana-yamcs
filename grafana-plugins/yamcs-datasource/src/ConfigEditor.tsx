@@ -19,6 +19,15 @@ export class ConfigEditor extends PureComponent<Props, State> {
     onOptionsChange({ ...options, jsonData });
   };
 
+  onInstanceChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onOptionsChange, options } = this.props;
+    const jsonData = {
+      ...options.jsonData,
+      instance: event.target.value,
+    };
+    onOptionsChange({ ...options, jsonData });
+  };
+
   // Secure field (only sent to the backend)
   onAPIKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
@@ -60,6 +69,16 @@ export class ConfigEditor extends PureComponent<Props, State> {
             onChange={this.onPathChange}
             value={jsonData.path || ''}
             placeholder="json field returned to frontend"
+          />
+        </div>
+        <div className="gf-form">
+          <FormField
+            label="Instance"
+            labelWidth={6}
+            inputWidth={20}
+            onChange={this.onInstanceChange}
+            value={jsonData.instance || ''}
+            placeholder="name of the Yamcs instance"
           />
         </div>
 
