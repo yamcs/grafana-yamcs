@@ -52,7 +52,7 @@ You can have multiple versions of this plugin with different configurations.
 
 ## Example
 
-For monitoring the Yamcs *simulation* example : ```bash ./run-example simulation ``` ,
+For monitoring the Yamcs *simulation* example : ```./run-example simulation ``` ,
 the Instance name is *simulator* and the Path is */YSS/SIMULATOR*
 
 
