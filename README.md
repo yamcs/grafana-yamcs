@@ -42,6 +42,19 @@ Add a datasource : on ```localhost:3000/datasources ``` -> add a datasource -> s
 
 You should now be able to select this datasource when editing a dashboard panel.
 
+## Configuration
+
+Add the name of your Yamcs instance in the *Instance* field.
+
+Add the path to your parameters in the *Path* field.
+
+You can have multiple versions of this plugin with different configurations.
+
+## Example
+
+For monitoring the Yamcs *simulation* example : ```bash ./run-example simulation ``` ,
+the Instance name is *simulator* and the Path is */YSS/SIMULATOR*
+
 
 ## Contributing
 
