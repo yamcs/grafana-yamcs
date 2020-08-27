@@ -2,15 +2,15 @@
   "routes": [
     {
       "path": "instance",
-      "url": "http://localhost:8090/api/instances/{{ .JsonData.instance }}"
+      "url": "http://{{ .JsonData.host }}:8090/api/instances/{{ .JsonData.instance }}"
     },
     {
       "path": "param",
-      "url": "http://localhost:8090/api/mdb/{{ .JsonData.instance }}/parameters"
+      "url": "http://{{ .JsonData.host }}:8090/api/mdb/{{ .JsonData.instance }}/parameters"
     },
     {
       "path": "samples",
-      "url": "http://localhost:8090/api/archive/{{ .JsonData.instance }}/parameters"
+      "url": "http://{{ .JsonData.host }}:8090/api/archive/{{ .JsonData.instance }}/parameters"
     }
   ],
   "type": "datasource",

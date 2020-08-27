@@ -1,7 +1,6 @@
 import defaults from 'lodash/defaults';
 
 import { getBackendSrv } from '@grafana/runtime';
-// import { setParameterPath, setIsUpdated } from './QueryEditor
 import {
   DataQueryRequest,
   DataQueryResponse,
@@ -15,12 +14,9 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   url?: string;
-  parameterPath?: string;
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
-    this.parameterPath = instanceSettings.jsonData.path;
-    // setParameterPath(this.parameterPath);
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -43,7 +39,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         });
 
         const routePath = '/samples';
-        // const baseUrl = this.url + routePath + this.parameterPath;
         const baseUrl = this.url + routePath;
 
         const param = query.param;
@@ -90,19 +85,15 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async testDatasource() {
-    // Implement a health check for your data source.
-    // setIsUpdated(false);
+    // Tests if the host and instance names are correct.
 
-    // const routePath = '/yamcs';
-    // const url =
-    //   this.url +
-    //   routePath +
-    //   '/api/archive/simulator/parameters/YSS/SIMULATOR/Psi/samples?start=2020-08-05T12:37:14.086Z&stop=2020-08-05T12:42:14.086Z&count=10';
-    //
-    // await getBackendSrv().datasourceRequest({
-    //   url: url,
-    //   method: 'GET',
-    // });
+    const routePath = '/instance';
+    const url = this.url + routePath;
+
+    await getBackendSrv().datasourceRequest({
+      url: url,
+      method: 'GET',
+    });
 
     return {
       status: 'success',
