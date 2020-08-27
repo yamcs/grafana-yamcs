@@ -1,7 +1,7 @@
 import defaults from 'lodash/defaults';
 
 import { getBackendSrv } from '@grafana/runtime';
-import { setParameterPath, setIsUpdated } from './QueryEditor';
+// import { setParameterPath, setIsUpdated } from './QueryEditor
 import {
   DataQueryRequest,
   DataQueryResponse,
@@ -20,7 +20,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     super(instanceSettings);
     this.url = instanceSettings.url;
     this.parameterPath = instanceSettings.jsonData.path;
-    setParameterPath(this.parameterPath);
+    // setParameterPath(this.parameterPath);
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -43,7 +43,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         });
 
         const routePath = '/samples';
-        const baseUrl = this.url + routePath + this.parameterPath;
+        // const baseUrl = this.url + routePath + this.parameterPath;
+        const baseUrl = this.url + routePath;
 
         const param = query.param;
         if (!param) {
@@ -54,7 +55,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const count = maxDataPoints;
 
         const url = `${baseUrl}/${param}/samples?start=${start}&stop=${end}&count=${count}`;
-
         let response = await getBackendSrv().datasourceRequest({
           url: url,
           method: 'GET',
@@ -91,7 +91,8 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async testDatasource() {
     // Implement a health check for your data source.
-    setIsUpdated(false);
+    // setIsUpdated(false);
+
     // const routePath = '/yamcs';
     // const url =
     //   this.url +

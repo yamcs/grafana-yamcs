@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "path": "instance",
+      "url": "http://localhost:8090/api/instances/{{ .JsonData.instance }}"
+    },
+    {
       "path": "param",
       "url": "http://localhost:8090/api/mdb/{{ .JsonData.instance }}/parameters"
     },
