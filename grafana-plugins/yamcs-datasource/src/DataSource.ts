@@ -1,5 +1,5 @@
 import defaults from 'lodash/defaults';
-
+// import { fetchCascaderOptions } from './util';
 import { getBackendSrv } from '@grafana/runtime';
 import {
   DataQueryRequest,
@@ -14,9 +14,17 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   url?: string;
+
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
+    // console.log('InstSet');
+
+    // console.log(instanceSettings);
+
+    // fetchCascaderOptions('' + this.url).then(({ cascaderParameters, flatParameters }) =>
+    //   QueryEditor.setCascaderOptions(flatParameters, cascaderParameters)
+    // );
   }
 
   async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
@@ -42,7 +50,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
         const baseUrl = this.url + routePath;
 
         const param = query.param;
-        if (!param) {
+        if (param === 'No Parameter') {
           return frame;
         }
         const start = this.timestampToYamcs(from);
@@ -86,6 +94,10 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
 
   async testDatasource() {
     // Tests if the host and instance names are correct.
+
+    // console.log(this);
+    // let ls: CascaderOption[] = [{ label: 'static label', value: 'static value' }];
+    // QueryEditor.setCascaderOptions(ls);
 
     const routePath = '/instance';
     const url = this.url + routePath;

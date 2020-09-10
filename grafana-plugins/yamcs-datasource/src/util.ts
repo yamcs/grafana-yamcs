@@ -1,120 +1,141 @@
-import { getBackendSrv } from '@grafana/runtime';
+// import { getBackendSrv } from '@grafana/runtime';
+import { CascaderOption } from '@grafana/ui';
+const f = async () => {
+  let p = new Promise<CascaderOption[]>(function(resolve) {
+    setTimeout(() => {
+      resolve([{ label: 'Async Parameter', value: 'Async Parameter' }]);
+    }, 1000);
+  });
+  return p;
+};
 
 export async function fetchCascaderOptions(proxyUrl: string) {
-  // FLAT OPTIONS ARE GOOD : just run populate with sublist
-  let spaceSystem = await fetchSpaceSystem(proxyUrl); // get spaceSystem = parameter directories
-  let target: any = [];
-  BFS(spaceSystem, target); // clean, rename and flatten spaceSystem into target
-  makeTree(target); // make tree of directories
-  let flatParameters = await fetchParameters(proxyUrl); // fetch the parameters
-  populateParameters(flatParameters, { value: '', items: target }); // add parameters them to their directories
-  return target;
+  console.log(proxyUrl);
+
+  let x = await f();
+  return x;
+  //
+  //
+  //
+  // // FLAT OPTIONS ARE GOOD : just run populate with sublist
+  // let spaceSystem = await fetchSpaceSystem(proxyUrl); // get spaceSystem = parameter directories
+  // let target: any = [];
+  // BFS(spaceSystem, target); // clean, rename and flatten spaceSystem into target
+  // makeTree(target); // make tree of directories
+  // let flatParameters = await fetchParameters(proxyUrl); // fetch the parameters
+  // populateParameters(flatParameters, { value: '', items: target }); // add parameters them to their directories
+  // return { flatParameters: flatParameters, cascaderParameters: target };
 }
-
-async function fetchSpaceSystem(proxyUrl: string) {
-  // get all the
-  const routePath = '/instance';
-  const url = proxyUrl + routePath;
-  let response = await getBackendSrv().datasourceRequest({
-    url: url,
-    method: 'GET',
-  }); // TODO : handle errors ?
-  let o = response.data.missionDatabase.spaceSystem;
-  return { name: '', sub: o };
-}
-
-function BFS(start: any, target: any) {
-  let queue: any = [];
-  let o = start;
-  while (o) {
-    if (o.sub) {
-      o.sub.forEach((e: any) => {
-        queue.push(e);
-        target.push({ label: e.name, value: e.qualifiedName, items: [] });
-      });
-    }
-    // we change object here
-    o = queue.shift();
-  }
-}
-
-function makeTree(target: any) {
-  // TODO : some names appear twice
-  let parentName = true;
-  while (parentName) {
-    let elem = target[target.length - 1];
-    let parentName = elem.value.substring(0, elem.value.lastIndexOf('/'));
-    let parent = target.find((e: any) => {
-      return e.value === parentName;
-    });
-    if (parent) {
-      parent.items.push(elem);
-      target.pop();
-    } else {
-      break;
-    }
-  }
-}
-
-async function fetchParameters(proxyUrl: string) {
-  // return a list with all the parameters
-
-  let params: any = [];
-  const routePath = '/param';
-  const baseUrl = proxyUrl + routePath;
-
-  let i = 0;
-  let suffix = `?pos=${i}&limit=1000`;
-  let url = baseUrl + suffix;
-  let response = await getBackendSrv().datasourceRequest({
-    url: url,
-    method: 'GET',
-  });
-  if (!response.data) {
-    return params;
-  }
-
-  params.push(...response.data.parameters);
-  for (i = 1000; i < response.data.totalSize; i += 1000) {
-    let suffix = `?pos=${i}&limit=1000`;
-    let url = baseUrl + suffix;
-    let response = await getBackendSrv().datasourceRequest({
-      url: url,
-      method: 'GET',
-    });
-    if (!response.data) {
-      break;
-    }
-    params.push(...response.data.parameters);
-  }
-  return params;
-}
-
-function populateParameters(flatParameters: any, target: any) {
-  let lastParentName = '';
-  let elem;
-  for (let p of flatParameters) {
-    // make object
-    let paramObject: any = { label: p.name, value: p.qualifiedName, items: [] };
-    // if aggregate : add its composites as children
-    if (p.type && p.type.engType === 'aggregate') {
-      console.log('p is aggregate');
-      p.type.member.forEach((item: any) => {
-        paramObject.items.push({ label: item.name, value: `${p.qualifiedName}.${item.name}`, items: [] });
-      });
-    }
-    // find parent in target
-    let parentName = paramObject.value.substring(0, paramObject.value.lastIndexOf('/'));
-    if (parentName !== lastParentName) {
-      // need to find the new parent
-      elem = findByName(target, parentName); // maybe inefficient to go through all but should work. TODO : look repertory after other. TODO : handle parent not found.
-      lastParentName = parentName;
-    } // otherwise use previous parent
-    // console.log(elem);
-    elem.items.push(paramObject);
-  }
-}
-
+//
+// async function fetchSpaceSystem(proxyUrl: string) {
+//   // get all the
+//   const routePath = '/instance';
+//   const url = proxyUrl + routePath;
+//   let response = await getBackendSrv().datasourceRequest({
+//     url: url,
+//     method: 'GET',
+//   }); // TODO : handle errors ?
+//   let o = response.data.missionDatabase.spaceSystem;
+//   return { name: '', sub: o };
+// }
+//
+// function BFS(start: any, target: any) {
+//   let queue: any = [];
+//   let o = start;
+//   while (o) {
+//     if (o.sub) {
+//       o.sub.forEach((e: any) => {
+//         queue.push(e);
+//         target.push({ label: e.name, value: e.qualifiedName, items: [] });
+//       });
+//     }
+//     // we change object here
+//     o = queue.shift();
+//   }
+// }
+//
+// function makeTree(target: any) {
+//   // TODO : some names appear twice
+//   let parentName = true;
+//   while (parentName) {
+//     let elem = target[target.length - 1];
+//     let parentName = elem.value.substring(0, elem.value.lastIndexOf('/'));
+//     let parent = target.find((e: any) => {
+//       return e.value === parentName;
+//     });
+//     if (parent) {
+//       parent.items.push(elem);
+//       target.pop();
+//     } else {
+//       break;
+//     }
+//   }
+// }
+//
+// async function fetchParameters(proxyUrl: string) {
+//   // return a list with all the parameters
+//
+//   let params: any = [];
+//   const routePath = '/param';
+//   const baseUrl = proxyUrl + routePath;
+//
+//   let i = 0;
+//   let suffix = `?pos=${i}&limit=1000`;
+//   let url = baseUrl + suffix;
+//   let response = await getBackendSrv().datasourceRequest({
+//     url: url,
+//     method: 'GET',
+//   });
+//   if (!response.data) {
+//     return params;
+//   }
+//   // params.push(...response.data.parameters);
+//   params.push(
+//     ...response.data.parameters.map((o: any) => (o = { label: o.name, value: o.qualifiedName, type: o.type }))
+//   ); // should be ok for now.
+//   for (i = 1000; i < response.data.totalSize; i += 1000) {
+//     let suffix = `?pos=${i}&limit=1000`;
+//     let url = baseUrl + suffix;
+//     let response = await getBackendSrv().datasourceRequest({
+//       url: url,
+//       method: 'GET',
+//     });
+//     if (!response.data) {
+//       break;
+//     }
+//     // params.push(...response.data.parameters);
+//     params.push(
+//       ...response.data.parameters.map((o: any) => (o = { label: o.name, value: o.qualifiedName, type: o.type }))
+//     ); // should be ok for now.
+//   }
+//   return params;
+// }
+//
+// function populateParameters(flatParameters: any, target: any) {
+//   let lastParentName = '';
+//   let elem;
+//   for (let p of flatParameters) {
+//     // make object
+//     let paramObject: any = { label: p.label, value: p.value, items: [] }; // attention : need p.type as well... can we have too much args in cascader ?
+//     // if aggregate : add its composites as children
+//     if (p.type && p.type.engType === 'aggregate') {
+//       console.log('p is aggregate');
+//       p.type.member.forEach((item: any) => {
+//         paramObject.items.push({ label: item.name, value: `${p.value}.${item.name}`, items: [] });
+//       });
+//     }
+//     // find parent in target
+//     let parentName = paramObject.value.substring(0, paramObject.value.lastIndexOf('/'));
+//     if (parentName !== lastParentName) {
+//       // need to find the new parent
+//       elem = findByName(target, parentName); // maybe inefficient to go through all but should work. TODO : look repertory after other. TODO : handle parent not found.
+//       lastParentName = parentName;
+//     } // otherwise use previous parent
+//     // console.log(elem);
+//     elem.items.push(paramObject);
+//   }
+// }
+//
 export function findByName(o: any, value: any) {
   //Early return
   if (o.value === value) {

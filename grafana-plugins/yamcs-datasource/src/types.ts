@@ -2,12 +2,19 @@ import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface MyQuery extends DataQuery {
   // variables
-  param: string | undefined;
+  param: string;
+  cascOpts: any;
+  selectedPath: string;
 }
 
 export const defaultQuery: Partial<MyQuery> = {
   // initial values
-  param: undefined,
+  param: 'No Parameter',
+  cascOpts: [
+    { label: 'No Parameter', value: 'No Parameter', items: [{ label: 'Other Option', value: 'Other Option' }] },
+    { label: 'Other Option', value: 'Other Option' },
+  ],
+  selectedPath: 'YSS/SIMULATOR',
 };
 
 /**
@@ -16,6 +23,7 @@ export const defaultQuery: Partial<MyQuery> = {
 export interface MyDataSourceOptions extends DataSourceJsonData {
   host?: string;
   instance?: string;
+  username?: string;
 }
 
 /**
@@ -23,4 +31,5 @@ export interface MyDataSourceOptions extends DataSourceJsonData {
  */
 export interface MySecureJsonData {
   apiKey?: string;
+  password?: string;
 }

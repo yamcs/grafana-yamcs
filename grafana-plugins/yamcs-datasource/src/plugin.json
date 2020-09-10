@@ -2,15 +2,39 @@
   "routes": [
     {
       "path": "instance",
-      "url": "http://{{ .JsonData.host }}:8090/api/instances/{{ .JsonData.instance }}"
+      "url": "http://{{ .JsonData.host }}:8090/api/instances/{{ .JsonData.instance }}",
+      "tokenAuth": {
+        "url": "http://{{ .JsonData.host }}:8090/auth/token",
+        "params": {
+          "grant_type": "password",
+          "username": "{{ .JsonData.username }}",
+          "password": "{{ .SecureJsonData.password }}"
+        }
+      }
     },
     {
       "path": "param",
       "url": "http://{{ .JsonData.host }}:8090/api/mdb/{{ .JsonData.instance }}/parameters"
+      "tokenAuth": {
+        "url": "http://{{ .JsonData.host }}:8090/auth/token",
+        "params": {
+          "grant_type": "password",
+          "username": "{{ .JsonData.username }}",
+          "password": "{{ .SecureJsonData.password }}"
+        }
+      }
     },
     {
       "path": "samples",
       "url": "http://{{ .JsonData.host }}:8090/api/archive/{{ .JsonData.instance }}/parameters"
+      "tokenAuth": {
+        "url": "http://{{ .JsonData.host }}:8090/auth/token",
+        "params": {
+          "grant_type": "password",
+          "username": "{{ .JsonData.username }}",
+          "password": "{{ .SecureJsonData.password }}"
+        }
+      }
     }
   ],
   "type": "datasource",

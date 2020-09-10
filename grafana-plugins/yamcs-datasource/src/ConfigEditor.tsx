@@ -28,6 +28,15 @@ export class ConfigEditor extends PureComponent<Props, State> {
     onOptionsChange({ ...options, jsonData });
   };
 
+  onUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onOptionsChange, options } = this.props;
+    const jsonData = {
+      ...options.jsonData,
+      username: event.target.value,
+    };
+    onOptionsChange({ ...options, jsonData });
+  };
+
   // Secure field (only sent to the backend)
   onAPIKeyChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
@@ -35,6 +44,17 @@ export class ConfigEditor extends PureComponent<Props, State> {
       ...options,
       secureJsonData: {
         apiKey: event.target.value,
+      },
+    });
+  };
+
+  // Secure field (only sent to the backend)
+  onPasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onOptionsChange, options } = this.props;
+    onOptionsChange({
+      ...options,
+      secureJsonData: {
+        password: event.target.value,
       },
     });
   };
@@ -54,6 +74,21 @@ export class ConfigEditor extends PureComponent<Props, State> {
     });
   };
 
+  onResetPassword = () => {
+    const { onOptionsChange, options } = this.props;
+    onOptionsChange({
+      ...options,
+      secureJsonFields: {
+        ...options.secureJsonFields,
+        password: false,
+      },
+      secureJsonData: {
+        ...options.secureJsonData,
+        password: '',
+      },
+    });
+  };
+
   render() {
     const { options } = this.props;
     const { jsonData, secureJsonFields } = options;
@@ -67,7 +102,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
             labelWidth={6}
             inputWidth={20}
             onChange={this.onHostChange}
-            value={jsonData.host || 'localhost'}
+            value={jsonData.host || ''}
             placeholder="name of the yamcs host"
           />
         </div>
@@ -81,7 +116,28 @@ export class ConfigEditor extends PureComponent<Props, State> {
             placeholder="name of the Yamcs instance"
           />
         </div>
-
+        <div className="gf-form">
+          <FormField
+            label="Username"
+            labelWidth={6}
+            inputWidth={20}
+            onChange={this.onUsernameChange}
+            value={jsonData.username || ''}
+            placeholder="Yamcs username"
+          />
+        </div>
+        <div className="gf-form">
+          <SecretFormField
+            isConfigured={(secureJsonFields && secureJsonFields.password) as boolean}
+            onReset={this.onResetPassword}
+            label="Password"
+            labelWidth={6}
+            inputWidth={20}
+            onChange={this.onPasswordChange}
+            value={secureJsonData.password || ''}
+            placeholder="Yamcs password"
+          />
+        </div>
         <div className="gf-form-inline">
           <div className="gf-form">
             <SecretFormField
