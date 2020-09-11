@@ -105,6 +105,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     await getBackendSrv().datasourceRequest({
       url: url,
       method: 'GET',
+      auth: {},
     });
 
     return {

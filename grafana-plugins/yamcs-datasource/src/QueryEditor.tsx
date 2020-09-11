@@ -36,10 +36,10 @@ export class QueryEditor extends PureComponent<Props> {
   ];
 
   loadAsyncOptions = (path: string[], i: number, input: string) => {
-    console.log('INPUT : ', input);
+    // console.log('INPUT : ', input);
 
     let parentPath = path.slice(0, i).join('/');
-    console.log('parentPath', parentPath);
+    // console.log('parentPath', parentPath);
 
     return new Promise<Array<SelectableValue<string>>>(resolve => {
       const proxyUrl = this.props.datasource.url;
@@ -62,11 +62,15 @@ export class QueryEditor extends PureComponent<Props> {
           data.parameters?.forEach(({ name, qualifiedName }: { name: string; qualifiedName: string }) => {
             res.push({ label: name, value: qualifiedName.slice(1) });
           });
-          resolve(
-            res.filter((e: any) => {
-              return e.label.toLowerCase().includes(input.toLowerCase());
-            })
-          );
+          if (!input) {
+            resolve(res);
+          } else {
+            resolve(
+              res.filter((e: any) => {
+                return e.label.toLowerCase().includes(input.toLowerCase());
+              })
+            );
+          }
         });
     });
   };
@@ -100,9 +104,13 @@ export class QueryEditor extends PureComponent<Props> {
 
   handlePathChange = async (v: SelectableValue<string>) => {
     const { onChange, query, onRunQuery } = this.props;
+    console.log('v', v);
+    let param = v.value!.endsWith('/') ? 'No Parameter' : '' + v.value;
+    console.log('param', param);
     onChange({
       ...query,
       selectedPath: '' + v.value,
+      param: param,
     });
     // executes the query
     onRunQuery();
@@ -113,6 +121,7 @@ export class QueryEditor extends PureComponent<Props> {
 
     return (
       <AsyncSelect
+        menuPlacement={'bottom'}
         defaultOptions={true}
         cacheOptions={false}
         loadOptions={input => {
@@ -120,7 +129,7 @@ export class QueryEditor extends PureComponent<Props> {
         }}
         value={{ label: val, value: val + '/' }}
         onChange={e => {
-          console.log(e);
+          // console.log(e);
           this.handlePathChange(e);
         }}
       />
@@ -133,9 +142,9 @@ export class QueryEditor extends PureComponent<Props> {
 
     let testComps: ReactNode[] = [];
 
-    console.log(selectedPath);
+    // console.log(selectedPath);
     let res = selectedPath.split('/');
-    console.log(res);
+    // console.log(res);
 
     for (let i = 0; i < res.length; i++) {
       testComps.push(this.createComp(res, i));

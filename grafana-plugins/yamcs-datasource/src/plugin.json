@@ -14,7 +14,7 @@
     },
     {
       "path": "param",
-      "url": "http://{{ .JsonData.host }}:8090/api/mdb/{{ .JsonData.instance }}/parameters"
+      "url": "http://{{ .JsonData.host }}:8090/api/mdb/{{ .JsonData.instance }}/parameters",
       "tokenAuth": {
         "url": "http://{{ .JsonData.host }}:8090/auth/token",
         "params": {
@@ -26,7 +26,7 @@
     },
     {
       "path": "samples",
-      "url": "http://{{ .JsonData.host }}:8090/api/archive/{{ .JsonData.instance }}/parameters"
+      "url": "http://{{ .JsonData.host }}:8090/api/archive/{{ .JsonData.instance }}/parameters",
       "tokenAuth": {
         "url": "http://{{ .JsonData.host }}:8090/auth/token",
         "params": {
