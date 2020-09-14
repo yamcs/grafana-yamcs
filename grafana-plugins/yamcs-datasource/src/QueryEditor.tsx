@@ -25,15 +25,9 @@ let profileOptions: Array<SelectableValue<string | number>> = [
 ];
 
 export class QueryEditor extends PureComponent<Props> {
+  key = 0;
   components: ReactNode[] = [];
-
-  getComponents = () => {
-    return this.components;
-  };
-  options = [
-    { label: 'abc', value: 'abc' },
-    { label: 'def', value: 'def' },
-  ];
+  previousRes: string[] = [];
 
   loadAsyncOptions = (path: string[], i: number, input: string) => {
     // console.log('INPUT : ', input);
@@ -78,7 +72,7 @@ export class QueryEditor extends PureComponent<Props> {
   // static optionsLoaded = false;
   // static cascaderOptions: CascaderOption[] = [
   //   { label: 'Base Option', value: 'Base Option', items: [{ label: 'Base Child', value: 'Base Child' }] },
-  // ];
+  // ];No Parameter
 
   // static cascaderOptions: any = [
   //   { label: 'No Parameter', value: 'No Parameter', items: [{ label: 'Other Option', value: 'Other Option' }] },
@@ -104,9 +98,11 @@ export class QueryEditor extends PureComponent<Props> {
 
   handlePathChange = async (v: SelectableValue<string>) => {
     const { onChange, query, onRunQuery } = this.props;
-    console.log('v', v);
-    let param = v.value!.endsWith('/') ? 'No Parameter' : '' + v.value;
-    console.log('param', param);
+    // console.log('v', v);
+    const dir = v.value!.endsWith('/');
+    let param = dir ? 'No Parameter' : '' + v.value;
+
+    // console.log('param', param);
     onChange({
       ...query,
       selectedPath: '' + v.value,
@@ -121,10 +117,12 @@ export class QueryEditor extends PureComponent<Props> {
 
     return (
       <AsyncSelect
+        key={this.key}
         menuPlacement={'bottom'}
         defaultOptions={true}
-        cacheOptions={false}
+        cacheOptions={true}
         loadOptions={input => {
+          console.log('load options called');
           return this.loadAsyncOptions(path, i, input);
         }}
         value={{ label: val, value: val + '/' }}
@@ -137,26 +135,44 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   render() {
+    console.log('-----', this.props.query.selectedPath, '------------');
+
     const query = defaults(this.props.query, defaultQuery);
-    const { param, selectedPath } = query;
+    const { selectedPath } = query;
 
-    let testComps: ReactNode[] = [];
-
-    // console.log(selectedPath);
     let res = selectedPath.split('/');
-    // console.log(res);
 
-    for (let i = 0; i < res.length; i++) {
-      testComps.push(this.createComp(res, i));
+    console.log('PREV RES : ', this.previousRes);
+    console.log('RES : ', res);
+
+    let i = 0;
+    for (i = 0; i < Math.min(res.length, this.previousRes.length); i++) {
+      if (res[i] !== this.previousRes[i]) {
+        break;
+      }
     }
+    console.log('i : ', i);
+
+    // console.log(res);
+    // this.components.length = 0;
+    this.components = this.components.slice(0, i);
+    console.log(this.components);
+
+    for (let j = i; j < res.length; j++) {
+      this.components.push(this.createComp(res, j));
+      console.log(this.key);
+      this.key = this.key + 1;
+    }
+    console.log(this.components);
+
+    this.previousRes = res;
 
     return (
       <div>
-        <HorizontalGroup>{testComps}</HorizontalGroup>
-        <div>{param === 'No Parameter' && <>See me if no param only</>}</div>
         <div className="gf-form">
-          <InlineFormLabel width={10}>
-            Parameter
+          <HorizontalGroup>
+            <InlineFormLabel width={5}>Parameter</InlineFormLabel>
+            {this.components}
             <Button
               size={'sm'}
               icon={'question-circle'}
@@ -167,19 +183,21 @@ export class QueryEditor extends PureComponent<Props> {
             >
               Info
             </Button>
-          </InlineFormLabel>
+          </HorizontalGroup>
         </div>
         <div className="gf-form">
-          <InlineFormLabel width={5}>Profile</InlineFormLabel>
-          <Select width={10} options={profileOptions} placeholder={'default'} onChange={e => console.log(e)} />
-          <Checkbox
-            label={'show raw values'}
-            defaultChecked={this.showRawValues}
-            onChange={e => {
-              this.showRawValues = !this.showRawValues;
-              console.log(this.showRawValues);
-            }}
-          />
+          <HorizontalGroup>
+            <InlineFormLabel width={5}>Profile</InlineFormLabel>
+            <Select width={10} options={profileOptions} placeholder={'default'} onChange={e => console.log(e)} />
+            <Checkbox
+              label={'show raw values'}
+              defaultChecked={this.showRawValues}
+              onChange={e => {
+                this.showRawValues = !this.showRawValues;
+                console.log(this.showRawValues);
+              }}
+            />
+          </HorizontalGroup>
         </div>
       </div>
     );
