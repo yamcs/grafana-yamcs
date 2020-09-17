@@ -61,7 +61,7 @@ You can test your configuration using the ```Save & Test``` button.
 For monitoring the Yamcs *simulation* example : ```./run-example simulation ``` <br></br>
 with the Yamcs server running on the same host as Grafana.
 
-![](grafana-plugins/yamcs-datasource/configExampleMedium.png)
+![](grafana-plugins/yamcs-datasource/configExample.png)
 
 
 ## Contributing
