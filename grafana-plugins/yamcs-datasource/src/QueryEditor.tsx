@@ -1,13 +1,9 @@
 import defaults from 'lodash/defaults';
-// import { findByName } from './util';
-// import React, { ChangeEvent, PureComponent } from 'react';
 import React, { PureComponent, ReactNode } from 'react';
 import { InlineFormLabel, Button } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from './DataSource';
 import { MyDataSourceOptions, MyQuery, defaultQuery } from './types';
-
-// const { FormField } = LegacyForms;
 
 import { AsyncSelect } from '@grafana/ui';
 import { Checkbox } from '@grafana/ui';
@@ -28,63 +24,67 @@ export class QueryEditor extends PureComponent<Props> {
   key = 0;
   components: ReactNode[] = [];
   previousRes: string[] = [];
+  init = true;
 
-  loadAsyncOptions = (path: string[], i: number, input: string) => {
-    // console.log('INPUT : ', input);
+  loadAsyncOptions = async (path: string[], i: number, input: string) => {
+    console.log('CALLED WITH INPUT : ', input);
 
     let parentPath = path.slice(0, i).join('/');
-    // console.log('parentPath', parentPath);
+
+    const proxyUrl = this.props.datasource.url;
+    const routePath = '/param';
+    let url = proxyUrl + routePath + `?system=/${parentPath}&pos=0&limit=1000`;
+
+    let res: Array<SelectableValue<string>> = [];
+
+    let response = await getBackendSrv().datasourceRequest({
+      url: url,
+      method: 'GET',
+    });
+
+    if (!response.data) {
+      return new Promise<Array<SelectableValue<string>>>(resolve => {
+        resolve(res);
+      });
+    }
+
+    console.log('RESP', response);
+
+    // this part is good with <1000 spaceSystems
+    response.data.spaceSystems?.forEach((name: string) => {
+      res.push({ label: name, value: name.slice(1) + '/' });
+    });
+
+    response.data.parameters?.forEach(({ name, qualifiedName }: { name: string; qualifiedName: string }) => {
+      res.push({ label: name, value: qualifiedName.slice(1) });
+    });
+
+    for (let i = 1000; i < response.data.totalSize; i += 1000) {
+      url = proxyUrl + routePath + `?system=/${parentPath}?pos=${i}&limit=1000`;
+      let response = await getBackendSrv().datasourceRequest({
+        url: url,
+        method: 'GET',
+      });
+      if (!response.data) {
+        break;
+      }
+      response.data.parameters?.forEach(({ name, qualifiedName }: { name: string; qualifiedName: string }) => {
+        res.push({ label: name, value: qualifiedName.slice(1) });
+      });
+    }
+
+    if (input) {
+      res = res.filter((e: any) => {
+        return e.label.toLowerCase().includes(input.toLowerCase());
+      });
+    }
 
     return new Promise<Array<SelectableValue<string>>>(resolve => {
-      const proxyUrl = this.props.datasource.url;
-      const routePath = '/param';
-      const url = proxyUrl + routePath + `?system=/${parentPath}&pos=0&limit=100`;
-
-      // console.log(url);
-
-      // resolve([{ label: 'bla', value: 'bla' }]);
-      getBackendSrv()
-        .datasourceRequest({
-          url: url,
-          method: 'GET',
-        })
-        .then(({ data }: any) => {
-          let res: Array<SelectableValue<string>> = [{ label: 'No Parameter', value: 'No Parameter' }];
-          data.spaceSystems?.forEach((name: string) => {
-            res.push({ label: name, value: name.slice(1) + '/' });
-          });
-          data.parameters?.forEach(({ name, qualifiedName }: { name: string; qualifiedName: string }) => {
-            res.push({ label: name, value: qualifiedName.slice(1) });
-          });
-          if (!input) {
-            resolve(res);
-          } else {
-            resolve(
-              res.filter((e: any) => {
-                return e.label.toLowerCase().includes(input.toLowerCase());
-              })
-            );
-          }
-        });
+      resolve(res);
     });
   };
 
-  // static optionsLoaded = false;
-  // static cascaderOptions: CascaderOption[] = [
-  //   { label: 'Base Option', value: 'Base Option', items: [{ label: 'Base Child', value: 'Base Child' }] },
-  // ];No Parameter
-
-  // static cascaderOptions: any = [
-  //   { label: 'No Parameter', value: 'No Parameter', items: [{ label: 'Other Option', value: 'Other Option' }] },
-  //   { label: 'Other Option', value: 'Other Option' },
-  // ];
   showRawValues = true;
-
-  constructor(input: any) {
-    super(input);
-
-    // this.setCascaderOptions();
-  }
 
   handleButton = async () => {
     const { onChange, query, onRunQuery } = this.props;
@@ -97,6 +97,7 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   handlePathChange = async (v: SelectableValue<string>) => {
+    this.init = false;
     const { onChange, query, onRunQuery } = this.props;
     // console.log('v', v);
     const dir = v.value!.endsWith('/');
@@ -112,12 +113,13 @@ export class QueryEditor extends PureComponent<Props> {
     onRunQuery();
   };
 
-  createComp = (path: string[], i: number) => {
+  createComp = (path: string[], i: number, open: boolean) => {
     const val = path[i];
-
     return (
       <AsyncSelect
         key={this.key}
+        autoFocus={!this.init && open}
+        openMenuOnFocus={true}
         menuPlacement={'bottom'}
         defaultOptions={true}
         cacheOptions={true}
@@ -159,7 +161,7 @@ export class QueryEditor extends PureComponent<Props> {
     console.log(this.components);
 
     for (let j = i; j < res.length; j++) {
-      this.components.push(this.createComp(res, j));
+      this.components.push(this.createComp(res, j, j === i + 1 ? true : false));
       console.log(this.key);
       this.key = this.key + 1;
     }
