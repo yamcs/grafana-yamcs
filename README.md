@@ -44,16 +44,24 @@ You should now be able to select this datasource when editing a dashboard panel.
 
 ## Configuration
 
-Add the name of your Yamcs instance in the *Instance* field.
+### Instructions
 
-Add the path to your parameters in the *Path* field.
+Enter the name of your Yamcs Server in the *Host name* field.
 
-You can have multiple versions of this plugin with different configurations.
+Enter the name of your Yamcs instance in the *Instance* field.
 
-## Example
+Enter your Yamcs username and password.
 
-For monitoring the Yamcs *simulation* example : ```./run-example simulation ``` ,
-the Instance name is *simulator* and the Path is */YSS/SIMULATOR*
+You can have multiple instances of this plugin with different configurations.
+
+You can test your configuration using the ```Save & Test``` button.
+
+### Example
+
+For monitoring the Yamcs *simulation* example : ```./run-example simulation ``` <br></br>
+with the Yamcs server running on the same host as Grafana.
+
+![](grafana-plugins/yamcs-datasource/configExampleMedium.png)
 
 
 ## Contributing
