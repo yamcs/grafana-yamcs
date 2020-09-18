@@ -48,7 +48,7 @@
       "url": "https://www.spaceapplications.com"
     },
     "keywords": [
-      "Yamcs"
+      "Yamcs", "Mission Control System", "Space Applications Services"
     ],
     "logos": {
       "small": "img/yamcs_sq.png",
@@ -57,11 +57,11 @@
     "links": [
       {
         "name": "Website",
-        "url": "https://github.com/grafana/simple-datasource"
+        "url": "https://yamcs.org/"
       },
       {
         "name": "License",
-        "url": "https://github.com/grafana/simple-datasource/blob/master/LICENSE"
+        "url": "https://github.com/yamcs/grafana-yamcs/blob/master/LICENSE"
       }
     ],
     "screenshots": [],
