@@ -38,8 +38,8 @@
     }
   ],
   "type": "datasource",
-  "name": "yamcs-datasource",
-  "id": "space-applications-services-yamcs-datasource",
+  "name": "yamcs",
+  "id": "yamcs-datasource",
   "metrics": true,
   "info": {
     "description": "A custom plugin allowing Yamcs as a datasource",
