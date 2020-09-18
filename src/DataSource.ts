@@ -1,5 +1,4 @@
 import defaults from 'lodash/defaults';
-// import { fetchCascaderOptions } from './util';
 import { getBackendSrv } from '@grafana/runtime';
 import {
   DataQueryRequest,
