@@ -8,7 +8,8 @@
 [Yamcs](https://yamcs.org/) is an open source Mission Control System software developped by [Space Applications Services](https://www.spaceapplications.com/).
 
 [Grafana](https://grafana.com/) is a data visualization and analytics tool supporting a large range of existing datasources as well as custom ones through the use of plugins.
-<br></br>This Grafana plugin allows the use of Yamcs as a Datasource.
+
+This Grafana plugin allows the use of Yamcs as a Datasource.
 
 
 ## Requirements
@@ -82,7 +83,8 @@ You can test your configuration using the ```Save & Test``` button.
 ### Example
 
 For monitoring the Yamcs *simulation* example : ```./run-example simulation ``` 
-with the Yamcs server running on the same host<br></br> as Grafana. By default, the authentication module of yamcs is disabled so you do not have to worry about username and password.
+with the Yamcs server running on the same host as Grafana. 
+By default, the authentication module of yamcs is disabled so you do not have to worry about username and password.
 
 ![configExample](https://raw.githubusercontent.com/yamcs/grafana-yamcs/master/src/img/configExample.png)
 
