@@ -27,7 +27,7 @@ export class QueryEditor extends PureComponent<Props> {
   init = true;
 
   loadAsyncOptions = async (path: string[], i: number, input: string) => {
-    console.log('CALLED WITH INPUT : ', input);
+    // console.log('CALLED WITH INPUT : ', input);
 
     let parentPath = path.slice(0, i).join('/');
 
@@ -48,7 +48,7 @@ export class QueryEditor extends PureComponent<Props> {
       });
     }
 
-    console.log('RESP', response);
+    // console.log('RESP', response);
 
     // this part is good with <1000 spaceSystems
     response.data.spaceSystems?.forEach((name: string) => {
@@ -124,7 +124,7 @@ export class QueryEditor extends PureComponent<Props> {
         defaultOptions={true}
         cacheOptions={true}
         loadOptions={input => {
-          console.log('load options called');
+          // console.log('load options called');
           return this.loadAsyncOptions(path, i, input);
         }}
         value={{ label: val, value: val + '/' }}
@@ -137,15 +137,15 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   render() {
-    console.log('-----', this.props.query.selectedPath, '------------');
+    // console.log('-----', this.props.query.selectedPath, '------------');
 
     const query = defaults(this.props.query, defaultQuery);
     const { selectedPath } = query;
 
     let res = selectedPath.split('/');
 
-    console.log('PREV RES : ', this.previousRes);
-    console.log('RES : ', res);
+    // console.log('PREV RES : ', this.previousRes);
+    // console.log('RES : ', res);
 
     let i = 0;
     for (i = 0; i < Math.min(res.length, this.previousRes.length); i++) {
@@ -153,19 +153,19 @@ export class QueryEditor extends PureComponent<Props> {
         break;
       }
     }
-    console.log('i : ', i);
+    // console.log('i : ', i);
 
     // console.log(res);
     // this.components.length = 0;
     this.components = this.components.slice(0, i);
-    console.log(this.components);
+    // console.log(this.components);
 
     for (let j = i; j < res.length; j++) {
       this.components.push(this.createComp(res, j, j === i + 1 ? true : false));
-      console.log(this.key);
+      // console.log(this.key);
       this.key = this.key + 1;
     }
-    console.log(this.components);
+    // console.log(this.components);
 
     this.previousRes = res;
 
