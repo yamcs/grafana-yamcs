@@ -31,7 +31,7 @@ grafana-cli plugins install yamcs-datasource
 systemctl restart grafana-server
 ```
 
-### For Developpers
+### For Developers
 
 Clone this repository
 ```bash
