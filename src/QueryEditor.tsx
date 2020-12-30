@@ -1,24 +1,12 @@
+import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { getBackendSrv } from '@grafana/runtime';
+import { AsyncSelect, Button, HorizontalGroup, InlineFormLabel } from '@grafana/ui';
 import defaults from 'lodash/defaults';
 import React, { PureComponent, ReactNode } from 'react';
-import { InlineFormLabel, Button } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { DataSource } from './DataSource';
-import { MyDataSourceOptions, MyQuery, defaultQuery } from './types';
-
-import { AsyncSelect } from '@grafana/ui';
-import { Checkbox } from '@grafana/ui';
-import { Select } from '@grafana/ui';
-import { HorizontalGroup } from '@grafana/ui';
-
-import { getBackendSrv } from '@grafana/runtime';
+import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
-
-let profileOptions: Array<SelectableValue<string | number>> = [
-  { label: 'profile 1', value: 1 },
-  { label: 'profile 2', value: 2 },
-  { label: 'profile 3', value: 3 },
-];
 
 export class QueryEditor extends PureComponent<Props> {
   key = 0;
@@ -27,8 +15,6 @@ export class QueryEditor extends PureComponent<Props> {
   init = true;
 
   loadAsyncOptions = async (path: string[], i: number, input: string) => {
-    console.log('CALLED WITH INPUT : ', input);
-
     let parentPath = path.slice(0, i).join('/');
 
     const proxyUrl = this.props.datasource.url;
@@ -47,8 +33,6 @@ export class QueryEditor extends PureComponent<Props> {
         resolve(res);
       });
     }
-
-    console.log('RESP', response);
 
     // this part is good with <1000 spaceSystems
     response.data.spaceSystems?.forEach((name: string) => {
@@ -84,8 +68,6 @@ export class QueryEditor extends PureComponent<Props> {
     });
   };
 
-  showRawValues = true;
-
   handleButton = async () => {
     const { onChange, query, onRunQuery } = this.props;
     onChange({
@@ -99,17 +81,15 @@ export class QueryEditor extends PureComponent<Props> {
   handlePathChange = async (v: SelectableValue<string>) => {
     this.init = false;
     const { onChange, query, onRunQuery } = this.props;
-    // console.log('v', v);
     const dir = v.value!.endsWith('/');
     let param = dir ? 'No Parameter' : '' + v.value;
 
-    // console.log('param', param);
     onChange({
       ...query,
       selectedPath: '' + v.value,
       param: param,
     });
-    // executes the query
+
     onRunQuery();
   };
 
@@ -124,12 +104,10 @@ export class QueryEditor extends PureComponent<Props> {
         defaultOptions={true}
         cacheOptions={true}
         loadOptions={input => {
-          console.log('load options called');
           return this.loadAsyncOptions(path, i, input);
         }}
         value={{ label: val, value: val + '/' }}
         onChange={e => {
-          // console.log(e);
           this.handlePathChange(e);
         }}
       />
@@ -137,15 +115,10 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   render() {
-    console.log('-----', this.props.query.selectedPath, '------------');
-
     const query = defaults(this.props.query, defaultQuery);
     const { selectedPath } = query;
 
     let res = selectedPath.split('/');
-
-    console.log('PREV RES : ', this.previousRes);
-    console.log('RES : ', res);
 
     let i = 0;
     for (i = 0; i < Math.min(res.length, this.previousRes.length); i++) {
@@ -153,19 +126,13 @@ export class QueryEditor extends PureComponent<Props> {
         break;
       }
     }
-    console.log('i : ', i);
-
-    // console.log(res);
     // this.components.length = 0;
     this.components = this.components.slice(0, i);
-    console.log(this.components);
 
     for (let j = i; j < res.length; j++) {
       this.components.push(this.createComp(res, j, j === i + 1 ? true : false));
-      console.log(this.key);
       this.key = this.key + 1;
     }
-    console.log(this.components);
 
     this.previousRes = res;
 
@@ -179,26 +146,11 @@ export class QueryEditor extends PureComponent<Props> {
               size={'sm'}
               icon={'question-circle'}
               onClick={() => {
-                console.log('clicked');
                 this.handleButton();
               }}
             >
               Info
             </Button>
-          </HorizontalGroup>
-        </div>
-        <div className="gf-form">
-          <HorizontalGroup>
-            <InlineFormLabel width={5}>Profile</InlineFormLabel>
-            <Select width={10} options={profileOptions} placeholder={'default'} onChange={e => console.log(e)} />
-            <Checkbox
-              label={'show raw values'}
-              defaultChecked={this.showRawValues}
-              onChange={e => {
-                this.showRawValues = !this.showRawValues;
-                console.log(this.showRawValues);
-              }}
-            />
           </HorizontalGroup>
         </div>
       </div>

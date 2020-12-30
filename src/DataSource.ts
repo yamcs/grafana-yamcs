@@ -1,15 +1,14 @@
-import defaults from 'lodash/defaults';
-import { getBackendSrv } from '@grafana/runtime';
 import {
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
-  MutableDataFrame,
   FieldType,
+  MutableDataFrame,
 } from '@grafana/data';
-
-import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
+import { getBackendSrv } from '@grafana/runtime';
+import defaults from 'lodash/defaults';
+import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   url?: string;
@@ -17,9 +16,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
-    // console.log('InstSet');
-
-    // console.log(instanceSettings);
 
     // fetchCascaderOptions('' + this.url).then(({ cascaderParameters, flatParameters }) =>
     //   QueryEditor.setCascaderOptions(flatParameters, cascaderParameters)
@@ -94,7 +90,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   async testDatasource() {
     // Tests if the host and instance names are correct.
 
-    // console.log(this);
     // let ls: CascaderOption[] = [{ label: 'static label', value: 'static value' }];
     // QueryEditor.setCascaderOptions(ls);
 

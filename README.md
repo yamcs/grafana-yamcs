@@ -74,11 +74,15 @@ Enter the name of your Yamcs Server in the *Host name* field.
 
 Enter the name of your Yamcs instance in the *Instance* field.
 
-(Optional) Enter your Yamcs username and password.
-
 You can have multiple instances of this plugin with different configurations.
 
 You can test your configuration using the ```Save & Test``` button.
+
+
+### Current Limitations
+
+* No authentication support
+* No realtime data (only polling)
 
 
 ### Example
