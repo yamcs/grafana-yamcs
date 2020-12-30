@@ -38,21 +38,23 @@
     }
   ],
   "type": "datasource",
-  "name": "yamcs",
-  "id": "flilzkov-yamcs-datasource",
+  "name": "Yamcs",
+  "id": "yamcs-yamcs-datasource",
   "metrics": true,
   "info": {
-    "description": "A custom plugin allowing Yamcs as a datasource",
+    "description": "Data source for Yamcs Mission Control",
     "author": {
       "name": "Florian Ilzkovitz",
       "url": "https://www.spaceapplications.com"
     },
     "keywords": [
-      "Yamcs", "Mission Control System", "Space Applications Services"
+      "Yamcs",
+      "Mission Control System",
+      "Space Applications Services"
     ],
     "logos": {
       "small": "img/yamcs_sq.png",
-      "large": "img/yamcs_inkscape.svg"
+      "large": "img/yamcs.png"
     },
     "links": [
       {
@@ -65,15 +67,15 @@
       }
     ],
     "screenshots": [
-    	{
+      {
         "name": "dahsboardExample",
         "path": "img/dashboardExample.png"
       },
-    	{
+      {
         "name": "queryExample",
         "path": "img/queryExample.png"
       },
-    	{
+      {
         "name": "configExample",
         "path": "img/configExample.png"
       }
