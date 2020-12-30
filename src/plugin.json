@@ -2,15 +2,15 @@
   "routes": [
     {
       "path": "instance",
-      "url": "http://{{ .JsonData.host }}:8090/api/instances/{{ .JsonData.instance }}"
+      "url": "{{ .JsonData.serverURL }}/api/instances/{{ .JsonData.instance }}"
     },
     {
       "path": "param",
-      "url": "http://{{ .JsonData.host }}:8090/api/mdb/{{ .JsonData.instance }}/parameters"
+      "url": "{{ .JsonData.serverURL }}/api/mdb/{{ .JsonData.instance }}/parameters"
     },
     {
       "path": "samples",
-      "url": "http://{{ .JsonData.host }}:8090/api/archive/{{ .JsonData.instance }}/parameters"
+      "url": "{{ .JsonData.serverURL }}/api/archive/{{ .JsonData.instance }}/parameters"
     }
   ],
   "type": "datasource",
@@ -25,8 +25,7 @@
     },
     "keywords": [
       "Yamcs",
-      "Mission Control System",
-      "Space Applications Services"
+      "Mission Control System"
     ],
     "logos": {
       "small": "img/yamcs_sq.png",

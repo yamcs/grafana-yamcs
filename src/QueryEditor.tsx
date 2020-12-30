@@ -1,12 +1,12 @@
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
-import { AsyncSelect, Button, HorizontalGroup, InlineFormLabel } from '@grafana/ui';
+import { AsyncSelect, HorizontalGroup, InlineFormLabel } from '@grafana/ui';
 import defaults from 'lodash/defaults';
 import React, { PureComponent, ReactNode } from 'react';
 import { DataSource } from './DataSource';
-import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
+import { defaultQuery, MyQuery, YamcsDataSourceOptions } from './types';
 
-type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
+type Props = QueryEditorProps<DataSource, MyQuery, YamcsDataSourceOptions>;
 
 export class QueryEditor extends PureComponent<Props> {
   key = 0;
@@ -66,16 +66,6 @@ export class QueryEditor extends PureComponent<Props> {
     return new Promise<Array<SelectableValue<string>>>(resolve => {
       resolve(res);
     });
-  };
-
-  handleButton = async () => {
-    const { onChange, query, onRunQuery } = this.props;
-    onChange({
-      ...query,
-      selectedPath: query.selectedPath + '/Z',
-    });
-    // executes the query
-    onRunQuery();
   };
 
   handlePathChange = async (v: SelectableValue<string>) => {
@@ -142,15 +132,6 @@ export class QueryEditor extends PureComponent<Props> {
           <HorizontalGroup>
             <InlineFormLabel width={5}>Parameter</InlineFormLabel>
             {this.components}
-            <Button
-              size={'sm'}
-              icon={'question-circle'}
-              onClick={() => {
-                this.handleButton();
-              }}
-            >
-              Info
-            </Button>
           </HorizontalGroup>
         </div>
       </div>

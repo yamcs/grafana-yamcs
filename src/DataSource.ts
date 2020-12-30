@@ -4,16 +4,17 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   FieldType,
-  MutableDataFrame,
+  MutableDataFrame
 } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import defaults from 'lodash/defaults';
-import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
+import { defaultQuery, MyQuery, YamcsDataSourceOptions } from './types';
 
-export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+export class DataSource extends DataSourceApi<MyQuery, YamcsDataSourceOptions> {
+
   url?: string;
 
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+  constructor(instanceSettings: DataSourceInstanceSettings<YamcsDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.url;
 

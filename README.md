@@ -34,7 +34,7 @@ systemctl restart grafana-server
 **Note:** This plugin is not yet available from the central Grafana.com plugin directory, that is why for now the use of the `--pluginUrl` argument is required.
 
 
-### Install a development snapshot
+### Install the most recent snapshot
 
 Clone this repository
 ```bash
@@ -42,12 +42,12 @@ cd path/to/grafana/plugin/directory
 git clone https://github.com/yamcs/grafana-yamcs.git
 cd grafana-yamcs
 yarn install
-yarn dev
+yarn build
 ```
 
 After each modification of the plugin run :
 ```bash
-yarn dev
+yarn build
 systemctl restart grafana-server
 ```
 
