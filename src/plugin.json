@@ -41,7 +41,6 @@
   "name": "yamcs",
   "id": "flilzkov-yamcs-datasource",
   "metrics": true,
-  "streaming": true,
   "info": {
     "description": "A custom plugin allowing Yamcs as a datasource",
     "author": {
