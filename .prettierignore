@@ -1,0 +1,3 @@
+# Effectively disables linting using prettier
+# (we only use that tool because grafana-toolkit forces it upon us)
+*

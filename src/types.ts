@@ -1,29 +1,45 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
-/**
- * These are options configured for each DataSource instance
- */
-export interface YamcsDataSourceOptions extends DataSourceJsonData {
-  serverURL?: string;
+export interface YamcsOptions extends DataSourceJsonData {
   instance?: string;
 }
 
-/**
- * Value that is used in the backend, but never sent over HTTP to the frontend
- */
-export interface MySecureJsonData {
-  apiKey?: string;
-  password?: string;
+export interface Instance {
+  name: string;
 }
 
-export interface MyQuery extends DataQuery {
-  // variables
-  param: string;
-  selectedPath: string;
+export interface ParameterQuery extends DataQuery {
+  parameter: string;
 }
 
-export const defaultQuery: Partial<MyQuery> = {
-  // initial values
-  param: 'No Parameter',
-  selectedPath: '',
+export interface Parameter {
+  name: string;
+  qualifiedName: string;
+}
+
+export interface ListParametersOptions {
+  q?: string;
+  limit?: number;
+  next?: string;
+}
+
+export interface ListParametersPage {
+  spaceSystems?: string[];
+  parameters?: Parameter[];
+  continuationToken?: string;
+}
+
+export interface SampleOptions {
+  start: string;
+  stop: string;
+  count?: number;
+}
+
+export interface Sample {
+  time: string;
+  avg: number;
+}
+
+export interface Samples {
+  sample: Sample[];
 }

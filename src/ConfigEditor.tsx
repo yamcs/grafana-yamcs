@@ -1,62 +1,41 @@
-import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import { LegacyForms } from '@grafana/ui';
-import React, { ChangeEvent, PureComponent } from 'react';
-import { YamcsDataSourceOptions } from './types';
+import { DataSourcePluginOptionsEditorProps, onUpdateDatasourceJsonDataOption } from '@grafana/data';
+import { DataSourceHttpSettings, LegacyForms } from '@grafana/ui';
+import React, { PureComponent } from 'react';
+import { YamcsOptions } from './types';
 
-const { /*SecretFormField,*/ FormField } = LegacyForms;
+export type Props = DataSourcePluginOptionsEditorProps<YamcsOptions>;
 
-interface Props extends DataSourcePluginOptionsEditorProps<YamcsDataSourceOptions> { }
+export class ConfigEditor extends PureComponent<Props> {
 
-interface State { }
-
-export class ConfigEditor extends PureComponent<Props, State> {
-
-  onServerURLChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onOptionsChange, options } = this.props;
-    const jsonData = {
-      ...options.jsonData,
-      serverURL: event.target.value,
-    };
-    onOptionsChange({ ...options, jsonData });
-  };
-
-  onInstanceChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { onOptionsChange, options } = this.props;
-    const jsonData = {
-      ...options.jsonData,
-      instance: event.target.value,
-    };
-    onOptionsChange({ ...options, jsonData });
-  };
+  constructor(props: Props) {
+    super(props);
+  }
 
   render() {
-    const { options } = this.props;
-    const { jsonData /*, secureJsonFields*/ } = options;
-    // const secureJsonData = (options.secureJsonData || {}) as MySecureJsonData;
-
     return (
-      <div className="gf-form-group">
-        <div className="gf-form">
-          <FormField
-            label="Server URL"
-            labelWidth={6}
-            inputWidth={20}
-            onChange={this.onServerURLChange}
-            value={jsonData.serverURL || 'http://localhost:8090'}
-            placeholder="Base address of Yamcs"
-          />
+      <>
+        <DataSourceHttpSettings
+          defaultUrl="http://localhost:8090"
+          dataSourceConfig={this.props.options}
+          showAccessOptions={true}
+          onChange={this.props.onOptionsChange}
+        />
+        <h3 className="page-heading">Yamcs Details</h3>
+        <div className="gf-form-group">
+          <div className="gf-form-inline">
+            <div className="gf-form">
+              <LegacyForms.FormField
+                label="Instance"
+                labelWidth={13}
+                inputWidth={20}
+                onChange={onUpdateDatasourceJsonDataOption(this.props, 'instance')}
+                value={this.props.options.jsonData.instance || ''}
+                placeholder="myproject"
+              />
+            </div>
+          </div>
         </div>
-        <div className="gf-form">
-          <FormField
-            label="Instance"
-            labelWidth={6}
-            inputWidth={20}
-            onChange={this.onInstanceChange}
-            value={jsonData.instance || ''}
-            placeholder="name of the Yamcs instance"
-          />
-        </div>
-      </div>
+      </>
     );
   }
 }

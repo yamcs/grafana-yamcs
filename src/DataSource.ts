@@ -6,106 +6,173 @@ import {
   FieldType,
   MutableDataFrame
 } from '@grafana/data';
-import { getBackendSrv } from '@grafana/runtime';
-import defaults from 'lodash/defaults';
-import { defaultQuery, MyQuery, YamcsDataSourceOptions } from './types';
+import { CascaderOption, CompletionItemGroup } from '@grafana/ui';
+import { ListParametersPage, ParameterQuery, YamcsOptions } from './types';
+import { YamcsClient } from './YamcsClient';
 
-export class DataSource extends DataSourceApi<MyQuery, YamcsDataSourceOptions> {
+export class DataSource extends DataSourceApi<ParameterQuery, YamcsOptions> {
 
-  url?: string;
+  readonly yamcs: YamcsClient;
 
-  constructor(instanceSettings: DataSourceInstanceSettings<YamcsDataSourceOptions>) {
-    super(instanceSettings);
-    this.url = instanceSettings.url;
-
-    // fetchCascaderOptions('' + this.url).then(({ cascaderParameters, flatParameters }) =>
-    //   QueryEditor.setCascaderOptions(flatParameters, cascaderParameters)
-    // );
+  constructor(private settings: DataSourceInstanceSettings<YamcsOptions>) {
+    super(settings);
+    this.yamcs = new YamcsClient(settings);
   }
 
-  async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const { range, maxDataPoints } = options;
+  /**
+   * Implements a health check. For example, Grafana calls this method whenever the
+   * user clicks the Save & Test button, after changing the connection settings.
+   */
+  async testDatasource() {
+    if (!this.settings.jsonData.instance) {
+      return { status: 'error', message: 'Instance option is required' };
+    }
 
-    const from = range!.from.valueOf();
-    const to = range!.to.valueOf();
+    const defaultErrorMessage = 'Cannot connect to Yamcs';
 
-    let data = await Promise.all(
-      options.targets.map(async target => {
-        const query = defaults(target, defaultQuery);
+    try {
+      await this.yamcs.fetchInstance();
+      return { status: 'success', message: 'Yamcs Connection OK' };
+    } catch (err) {
+      if (typeof err === 'string') {
+        return { status: 'error', message: err };
+      } else {
+        return { status: 'error', message: err?.statusText || defaultErrorMessage };
+      }
+    }
+  }
 
-        const frame = new MutableDataFrame({
-          refId: query.refId,
-          fields: [
-            // basic plot data : value wrt time
-            { name: 'time', type: FieldType.time },
-            { name: 'value', type: FieldType.number, config: { displayName: query.param } },
-          ],
-        });
+  /**
+   * Accepts a query from the user, retrieves the data from Yamcs,
+   * and returns the data in a format that Grafana recognizes.
+   */
+  async query(options: DataQueryRequest<ParameterQuery>): Promise<DataQueryResponse> {
+    const promises = options.targets.map(async target => {
 
-        const routePath = '/samples';
-        const baseUrl = this.url + routePath;
+      const frame = new MutableDataFrame({
+        refId: target.refId,
+        fields: [{
+          name: 'time',
+          type: FieldType.time,
+        }, {
+          name: 'value',
+          type: FieldType.string,
+          config: { displayName: target.parameter },
+        }, {
+          name: 'level',
+          type: FieldType.string,
+          config: {
 
-        const param = query.param;
-        if (param === 'No Parameter') {
-          return frame;
-        }
-        const start = this.timestampToYamcs(from);
-        const end = this.timestampToYamcs(to);
-        const count = maxDataPoints;
+          }
+        }],
+      });
 
-        const url = `${baseUrl}/${param}/samples?start=${start}&stop=${end}&count=${count}`;
-        let response = await getBackendSrv().datasourceRequest({
-          url: url,
-          method: 'GET',
-        });
-
-        if (!response || !response.data || !response.data.sample) {
-          return frame;
-        }
-        let ls = response.data.sample;
-
-        for (let pt of ls) {
-          const timestamp = this.yamcsToTimestamp(pt.time);
-          let val = pt.avg;
-
-          frame.add({ time: timestamp, value: val });
-        }
-
+      if (!target.parameter) {
         return frame;
-      })
-    );
+      }
 
-    return { data };
+      const samples = await this.yamcs.sampleParameter(target.parameter, {
+        start: options.range!.from.toISOString(),
+        stop: options.range!.to.toISOString(),
+        count: options.maxDataPoints,
+      });
+      for (const sample of samples) {
+        frame.add({
+          time: this.parseTime(sample.time),
+          value: 'abcc ' + sample.avg,
+          level: 'error',
+        });
+      }
+
+      return frame;
+    });
+
+    // Wait for all requests to finish before returning the data
+    return Promise.all(promises).then(data => ({ data }));
   }
 
-  yamcsToTimestamp(yamcsDate: string): number {
-    const date = new Date(yamcsDate); // converts ISO date to date
+  async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
+    const page = await this.yamcs.listParameters({ q, limit: 15 });
+
+    // Group by space system
+    const groups = new Map<String, CompletionItemGroup>();
+    for (const parameter of (page.parameters || [])) {
+      const spaceSystem = this.extractSpacesystem(parameter.qualifiedName);
+      let group = groups.get(spaceSystem);
+      if (!group) {
+        group = {
+          label: spaceSystem,
+          items: [],
+        };
+        groups.set(spaceSystem, group);
+      }
+      group.items.push({
+        label: parameter.name,
+        filterText: parameter.qualifiedName.toLowerCase(),
+        insertText: parameter.qualifiedName,
+      })
+    }
+    return [...groups.values()];
+  }
+
+  async cascadeParameters(): Promise<CascaderOption[]> {
+    const top: CascaderOption = {
+      label: '',
+      value: '',
+      children: [],
+    };
+
+    let page: ListParametersPage | null = null;
+
+    while (!page || page.continuationToken) {
+      if (!page) {
+        page = await this.yamcs.listParameters();
+      } else {
+        page = await this.yamcs.listParameters({ next: page.continuationToken });
+      }
+      for (const parameter of (page.parameters || [])) {
+        const parts = parameter.qualifiedName.split('/');
+        this.addCascadeOption(top, parameter.qualifiedName, parts);
+      }
+    }
+
+    return top.children!;
+  }
+
+  private addCascadeOption(node: CascaderOption, qualifiedName: string, parts: string[], offset = 1) {
+    if (offset === parts.length - 1) {
+      node.children!.push({
+        label: parts[offset],
+        value: node.value + '/' + parts[offset],
+      });
+      return;
+    }
+
+    let matchedChild: CascaderOption | null = null;
+    for (const child of node.children!) {
+      if (child.label === parts[offset]) {
+        matchedChild = child;
+      }
+    }
+    if (!matchedChild) {
+      matchedChild = {
+        label: parts[offset],
+        value: node.value + '/' + parts[offset],
+        children: [],
+      }
+      node.children!.push(matchedChild);
+    }
+
+    this.addCascadeOption(matchedChild, qualifiedName, parts, offset + 1);
+  }
+
+  private parseTime(isostring: string): number {
+    const date = new Date(Date.parse(isostring));
     return date.getTime();
   }
 
-  timestampToYamcs(timestamp: number): string {
-    const date = new Date(timestamp);
-    return date.toISOString();
-  }
-
-  async testDatasource() {
-    // Tests if the host and instance names are correct.
-
-    // let ls: CascaderOption[] = [{ label: 'static label', value: 'static value' }];
-    // QueryEditor.setCascaderOptions(ls);
-
-    const routePath = '/instance';
-    const url = this.url + routePath;
-
-    await getBackendSrv().datasourceRequest({
-      url: url,
-      method: 'GET',
-      auth: {},
-    });
-
-    return {
-      status: 'success',
-      message: 'Success',
-    };
+  private extractSpacesystem(qualifiedName: string) {
+    const idx = qualifiedName.lastIndexOf('/');
+    return (idx === -1) ? qualifiedName : qualifiedName.substring(0, idx);
   }
 }

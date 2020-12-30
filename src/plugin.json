@@ -1,40 +1,24 @@
 {
-  "routes": [
-    {
-      "path": "instance",
-      "url": "{{ .JsonData.serverURL }}/api/instances/{{ .JsonData.instance }}"
-    },
-    {
-      "path": "param",
-      "url": "{{ .JsonData.serverURL }}/api/mdb/{{ .JsonData.instance }}/parameters"
-    },
-    {
-      "path": "samples",
-      "url": "{{ .JsonData.serverURL }}/api/archive/{{ .JsonData.instance }}/parameters"
-    }
-  ],
   "type": "datasource",
   "name": "Yamcs",
   "id": "yamcs-yamcs-datasource",
+  "category": "other",
   "metrics": true,
+  "logs": true,
   "info": {
     "description": "Data source for Yamcs Mission Control",
     "author": {
-      "name": "Florian Ilzkovitz",
-      "url": "https://www.spaceapplications.com"
+      "name": "Yamcs Team",
+      "url": "https://yamcs.org"
     },
-    "keywords": [
-      "Yamcs",
-      "Mission Control System"
-    ],
     "logos": {
-      "small": "img/yamcs_sq.png",
-      "large": "img/yamcs.png"
+      "small": "img/logo.png",
+      "large": "img/logo.png"
     },
     "links": [
       {
         "name": "Website",
-        "url": "https://yamcs.org/"
+        "url": "https://yamcs.org"
       },
       {
         "name": "License",
@@ -43,24 +27,20 @@
     ],
     "screenshots": [
       {
-        "name": "dahsboardExample",
+        "name": "Dashboard Example",
         "path": "img/dashboardExample.png"
       },
       {
-        "name": "queryExample",
+        "name": "Query Example",
         "path": "img/queryExample.png"
-      },
-      {
-        "name": "configExample",
-        "path": "img/configExample.png"
       }
     ],
-    "version": "1.0.0",
-    "updated": "2020-09-18"
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaVersion": "7.x.x",
-    "grafanaDependency": ">=7.1.0",
+    "grafanaVersion": "7.3",
+    "grafanaDependency": ">=7.3.0",
     "plugins": []
   }
 }

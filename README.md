@@ -59,9 +59,9 @@ cd path/to/yamcs
 ./run-example.sh simulation
 ```
 
-On ```localhost:3000``` you should find the Grafana homepage.
+On `localhost:3000` you should find the Grafana homepage.
 
-Add a datasource : on ```localhost:3000/datasources ``` -> add a datasource -> search for *yamcs-datasource*.
+Add a datasource : on `localhost:3000/datasources` -> add a datasource -> search for *Yamcs*.
 
 You should now be able to configure this datasource and select it when editing a dashboard panel.
 
@@ -76,23 +76,15 @@ Enter the name of your Yamcs instance in the *Instance* field.
 
 You can have multiple instances of this plugin with different configurations.
 
-You can test your configuration using the ```Save & Test``` button.
+You can test your configuration using the `Save & Test` button.
 
 
-### Current Limitations
+## Current Limitations
 
 * No authentication support
 * No realtime data (only polling)
 
 
-### Example
-
-For monitoring the Yamcs *simulation* example : ```./run-example simulation ``` 
-with the Yamcs server running on the same host as Grafana.
-
-![configExample](https://raw.githubusercontent.com/yamcs/grafana-yamcs/master/src/img/configExample.png)
-
-
-### License
+## License
 
 [Apache License 2.0](https://github.com/yamcs/grafana-yamcs/blob/master/LICENSE) 

@@ -8,19 +8,12 @@
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch"
   },
-  "author": "Florian Ilzkovitz",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "7.0.1",
-    "@grafana/toolkit": "7.0.1",
-    "@grafana/ui": "7.0.1",
-    "@types/lodash": "latest"
-  },
-  "engines": {
-    "node": ">=12"
-  },
-  "dependencies": {
-    "@grafana/runtime": "^7.1.3",
-    "rsuite": "^4.8.0"
+    "@grafana/data": "^7.3.6",
+    "@grafana/runtime": "^7.3.6",
+    "@grafana/toolkit": "^7.3.6",
+    "@grafana/ui": "^7.3.6",
+    "rsuite": "^4.8.6"
   }
 }
