@@ -6,17 +6,25 @@ import {
   FieldType,
   MutableDataFrame
 } from '@grafana/data';
-import { CascaderOption, CompletionItemGroup } from '@grafana/ui';
-import { ListParametersPage, ParameterQuery, YamcsOptions } from './types';
+import { ListEventsQuery, ParameterSamplesQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
+import { YamcsCache } from './YamcsCache';
 import { YamcsClient } from './YamcsClient';
 
-export class DataSource extends DataSourceApi<ParameterQuery, YamcsOptions> {
+export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
+  private cache?: YamcsCache;
   readonly yamcs: YamcsClient;
 
   constructor(private settings: DataSourceInstanceSettings<YamcsOptions>) {
     super(settings);
     this.yamcs = new YamcsClient(settings);
+  }
+
+  getCache(): YamcsCache {
+    if (!this.cache) {
+      this.cache = new YamcsCache(this);
+    }
+    return this.cache;
   }
 
   /**
@@ -46,133 +54,146 @@ export class DataSource extends DataSourceApi<ParameterQuery, YamcsOptions> {
    * Accepts a query from the user, retrieves the data from Yamcs,
    * and returns the data in a format that Grafana recognizes.
    */
-  async query(options: DataQueryRequest<ParameterQuery>): Promise<DataQueryResponse> {
-    const promises = options.targets.map(async target => {
-
-      const frame = new MutableDataFrame({
-        refId: target.refId,
-        fields: [{
-          name: 'time',
-          type: FieldType.time,
-        }, {
-          name: 'value',
-          type: FieldType.string,
-          config: { displayName: target.parameter },
-        }, {
-          name: 'level',
-          type: FieldType.string,
-          config: {
-
-          }
-        }],
-      });
-
-      if (!target.parameter) {
-        return frame;
+  async query(request: DataQueryRequest<YamcsQuery>): Promise<DataQueryResponse> {
+    const promises = request.targets.map(async target => {
+      switch (target.queryType) {
+        case QueryType.ParameterSamples:
+          return this.queryParameterSamples(request, target, target as ParameterSamplesQuery);
+        case QueryType.ListEvents:
+          return this.queryEvents(request, target, target as ListEventsQuery);
+        default:
+          throw new Error(`Unexpected query type ${target.queryType}`);
       }
-
-      const samples = await this.yamcs.sampleParameter(target.parameter, {
-        start: options.range!.from.toISOString(),
-        stop: options.range!.to.toISOString(),
-        count: options.maxDataPoints,
-      });
-      for (const sample of samples) {
-        frame.add({
-          time: this.parseTime(sample.time),
-          value: 'abcc ' + sample.avg,
-          level: 'error',
-        });
-      }
-
-      return frame;
     });
 
     // Wait for all requests to finish before returning the data
     return Promise.all(promises).then(data => ({ data }));
   }
 
-  async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
-    const page = await this.yamcs.listParameters({ q, limit: 15 });
-
-    // Group by space system
-    const groups = new Map<String, CompletionItemGroup>();
-    for (const parameter of (page.parameters || [])) {
-      const spaceSystem = this.extractSpacesystem(parameter.qualifiedName);
-      let group = groups.get(spaceSystem);
-      if (!group) {
-        group = {
-          label: spaceSystem,
-          items: [],
-        };
-        groups.set(spaceSystem, group);
-      }
-      group.items.push({
-        label: parameter.name,
-        filterText: parameter.qualifiedName.toLowerCase(),
-        insertText: parameter.qualifiedName,
-      })
-    }
-    return [...groups.values()];
-  }
-
-  async cascadeParameters(): Promise<CascaderOption[]> {
-    const top: CascaderOption = {
-      label: '',
-      value: '',
-      children: [],
-    };
-
-    let page: ListParametersPage | null = null;
-
-    while (!page || page.continuationToken) {
-      if (!page) {
-        page = await this.yamcs.listParameters();
-      } else {
-        page = await this.yamcs.listParameters({ next: page.continuationToken });
-      }
-      for (const parameter of (page.parameters || [])) {
-        const parts = parameter.qualifiedName.split('/');
-        this.addCascadeOption(top, parameter.qualifiedName, parts);
+  private async queryParameterSamples(
+    request: DataQueryRequest<YamcsQuery>,
+    target: YamcsQuery,
+    query: ParameterSamplesQuery,
+  ) {
+    const frame = new MutableDataFrame({
+      refId: target.refId,
+      fields: [{
+        name: 'time',
+        type: FieldType.time,
+      }],
+    });
+    for (const stat of query.stats) {
+      switch (stat) {
+        case StatType.AVG:
+          frame.addField({
+            name: 'avg',
+            type: FieldType.number,
+          });
+          break;
+        case StatType.MIN:
+          frame.addField({
+            name: 'min',
+            type: FieldType.number,
+          });
+          break;
+        case StatType.MAX:
+          frame.addField({
+            name: 'max',
+            type: FieldType.number,
+          });
+          break;
+        case StatType.COUNT:
+          frame.addField({
+            name: 'count',
+            type: FieldType.number,
+          });
+          break;
       }
     }
 
-    return top.children!;
+    if (!query.parameter) {
+      return frame;
+    }
+
+    const samples = await this.yamcs.sampleParameter(query.parameter, {
+      start: request.range!.from.toISOString(),
+      stop: request.range!.to.toISOString(),
+      count: request.maxDataPoints,
+    });
+    for (const sample of samples) {
+      const value: { [key: string]: number } = {
+        time: this.parseTime(sample.time),
+      };
+      for (const stat of query.stats) {
+        switch (stat) {
+          case StatType.AVG:
+            value['avg'] = sample.avg;
+            break;
+          case StatType.MIN:
+            value['min'] = sample.min;
+            break;
+          case StatType.MAX:
+            value['max'] = sample.max;
+            break;
+          case StatType.COUNT:
+            value['count'] = sample.n;
+            break;
+        }
+      }
+      frame.add(value);
+    }
+
+    return frame;
   }
 
-  private addCascadeOption(node: CascaderOption, qualifiedName: string, parts: string[], offset = 1) {
-    if (offset === parts.length - 1) {
-      node.children!.push({
-        label: parts[offset],
-        value: node.value + '/' + parts[offset],
+  private async queryEvents(
+    request: DataQueryRequest<YamcsQuery>,
+    target: YamcsQuery,
+    query: ListEventsQuery,
+  ) {
+    const frame = new MutableDataFrame({
+      refId: target.refId,
+      fields: [{
+        name: 'time',
+        type: FieldType.time,
+      }, {
+        name: 'message',
+        type: FieldType.string,
+      }, {
+        name: 'source',
+        type: FieldType.string,
+      }, {
+        name: 'type',
+        type: FieldType.string,
+      }, {
+        name: 'severity',
+        type: FieldType.string,
+      }, {
+        name: 'seqNumber',
+        type: FieldType.number,
+      }],
+    });
+
+    const page = await this.yamcs.listEvents({
+      start: request.range!.from.toISOString(),
+      stop: request.range!.to.toISOString(),
+    });
+    for (const event of (page.event || [])) {
+      frame.add({
+        time: this.parseTime(event.generationTime),
+        message: event.message,
+        source: event.source,
+        type: event.type,
+        severity: event.severity,
+        seqNumber: event.seqNumber,
       });
-      return;
     }
 
-    let matchedChild: CascaderOption | null = null;
-    for (const child of node.children!) {
-      if (child.label === parts[offset]) {
-        matchedChild = child;
-      }
-    }
-    if (!matchedChild) {
-      matchedChild = {
-        label: parts[offset],
-        value: node.value + '/' + parts[offset],
-        children: [],
-      }
-      node.children!.push(matchedChild);
-    }
-
-    this.addCascadeOption(matchedChild, qualifiedName, parts, offset + 1);
+    return frame;
   }
 
   private parseTime(isostring: string): number {
     const date = new Date(Date.parse(isostring));
     return date.getTime();
-  }
-
-  private extractSpacesystem(qualifiedName: string) {
-    const idx = qualifiedName.lastIndexOf('/');
-    return (idx === -1) ? qualifiedName : qualifiedName.substring(0, idx);
   }
 }

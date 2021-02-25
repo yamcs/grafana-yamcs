@@ -1,9 +1,9 @@
 import { DataSourcePlugin } from '@grafana/data';
-import { ConfigEditor } from './ConfigEditor';
+import { ConfigEditor } from './components/ConfigEditor';
+import { QueryEditor } from './components/QueryEditor';
 import { DataSource } from './DataSource';
-import { QueryEditor } from './QueryEditor';
-import { ParameterQuery, YamcsOptions } from './types';
+import { YamcsOptions, YamcsQuery } from './types';
 
-export const plugin = new DataSourcePlugin<DataSource, ParameterQuery, YamcsOptions>(DataSource)
+export const plugin = new DataSourcePlugin<DataSource, YamcsQuery, YamcsOptions>(DataSource)
   .setConfigEditor(ConfigEditor)
   .setQueryEditor(QueryEditor);

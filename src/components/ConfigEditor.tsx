@@ -1,7 +1,7 @@
 import { DataSourcePluginOptionsEditorProps, onUpdateDatasourceJsonDataOption } from '@grafana/data';
 import { DataSourceHttpSettings, LegacyForms } from '@grafana/ui';
 import React, { PureComponent } from 'react';
-import { YamcsOptions } from './types';
+import { YamcsOptions } from '../types';
 
 export type Props = DataSourcePluginOptionsEditorProps<YamcsOptions>;
 

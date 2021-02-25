@@ -4,7 +4,6 @@
   "id": "yamcs-yamcs-datasource",
   "category": "other",
   "metrics": true,
-  "logs": true,
   "info": {
     "description": "Data source for Yamcs Mission Control",
     "author": {
@@ -19,6 +18,10 @@
       {
         "name": "Website",
         "url": "https://yamcs.org"
+      },
+      {
+        "name": "Issue Tracker",
+        "url": "https://github.com/yamcs/grafana-yamcs/issues"
       },
       {
         "name": "License",
@@ -39,7 +42,7 @@
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaVersion": "7.3",
+    "grafanaVersion": "7.3.0",
     "grafanaDependency": ">=7.3.0",
     "plugins": []
   }

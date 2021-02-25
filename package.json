@@ -14,6 +14,8 @@
     "@grafana/runtime": "^7.3.6",
     "@grafana/toolkit": "^7.3.6",
     "@grafana/ui": "^7.3.6",
+    "@types/lodash": "latest",
+    "lodash": "lastest",
     "rsuite": "^4.8.6"
   }
 }

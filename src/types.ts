@@ -1,45 +1,41 @@
-import { DataQuery, DataSourceJsonData } from '@grafana/data';
+import { DataQuery, DataSourceJsonData, SelectableValue } from '@grafana/data';
 
 export interface YamcsOptions extends DataSourceJsonData {
   instance?: string;
 }
 
-export interface Instance {
-  name: string;
+export enum QueryType {
+  ParameterSamples = 'ParameterSamples',
+  ListEvents = 'ListEvents',
 }
 
-export interface ParameterQuery extends DataQuery {
-  parameter: string;
+export enum StatType {
+  AVG = 'AVG',
+  COUNT = 'COUNT',
+  MAX = 'MAX',
+  MIN = 'MIN',
 }
 
-export interface Parameter {
-  name: string;
-  qualifiedName: string;
+export interface YamcsQuery extends DataQuery {
+  queryType: QueryType;
+  parameter?: string;
+  maxPages?: number;
 }
 
-export interface ListParametersOptions {
-  q?: string;
-  limit?: number;
-  next?: string;
+export interface ParameterSamplesQuery extends YamcsQuery {
+  queryType: QueryType.ParameterSamples;
+  stats: StatType[];
 }
 
-export interface ListParametersPage {
-  spaceSystems?: string[];
-  parameters?: Parameter[];
-  continuationToken?: string;
+export interface ListEventsQuery extends YamcsQuery {
+  queryType: QueryType.ListEvents;
+  source?: string;
 }
 
-export interface SampleOptions {
-  start: string;
-  stop: string;
-  count?: number;
+export interface SystemInfo extends SelectableValue<string> {
+  parameters: ParameterInfo[];
 }
 
-export interface Sample {
-  time: string;
-  avg: number;
-}
-
-export interface Samples {
-  sample: Sample[];
+export interface ParameterInfo extends SelectableValue<string> {
+  engType: string;
 }
