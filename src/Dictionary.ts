@@ -1,9 +1,9 @@
 import { DataSource } from './DataSource';
-import { ParameterInfo } from './types';
+import { EngType, ParameterInfo } from './types';
 import { ListParametersPage, Parameter } from './YamcsClient';
 
 function mapToParameterInfo(parameter: Parameter): ParameterInfo {
-    const engType = parameter.type?.engType.toUpperCase() || 'NO TYPE';
+    const engType = (parameter.type?.engType.toUpperCase() || 'NO TYPE') as EngType;
     let description = engType;
     if (parameter.type?.unitSet) {
         description += ' • '
@@ -18,25 +18,14 @@ function mapToParameterInfo(parameter: Parameter): ParameterInfo {
     };
 }
 
-export class YamcsCache {
+export class Dictionary {
     private loaded = false;
     private parametersById = new Map<string, ParameterInfo>();
 
     constructor(private dataSource: DataSource) {
     }
 
-    async getParameterInfo(id: string): Promise<ParameterInfo> {
-        await this.loadDictionary();
-
-        const v = this.parametersById.get(id);
-        if (v) {
-            return v;
-        } else {
-            throw 'parameter not found';
-        }
-    }
-
-    private async loadDictionary() {
+    async loadDictionary() {
         if (this.loaded) {
             return;
         }
@@ -55,5 +44,14 @@ export class YamcsCache {
             }
         }
         this.loaded = true;
+    }
+
+    getParameterInfo(id: string): ParameterInfo {
+        const v = this.parametersById.get(id);
+        if (v) {
+            return v;
+        } else {
+            throw 'parameter not found';
+        }
     }
 }

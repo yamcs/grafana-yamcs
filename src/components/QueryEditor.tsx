@@ -5,7 +5,7 @@ import React, { PureComponent } from 'react';
 import { DataSource } from '../DataSource';
 import { changeQueryType, QueryTypeInfo, yamcsQueryTypes } from '../queryInfo';
 import { QueryType, YamcsOptions, YamcsQuery } from '../types';
-import { QueryEditorParameters } from './QueryEditorParameters';
+import { ParameterQueryEditor } from './ParameterQueryEditor';
 
 export interface Props extends QueryEditorProps<DataSource, YamcsQuery, YamcsOptions> {
 }
@@ -30,8 +30,9 @@ export class QueryEditor extends PureComponent<Props> {
     switch (query.queryType) {
       case QueryType.ListEvents:
         return null; // Nothing required
+      case QueryType.ParameterValue:
       case QueryType.ParameterSamples:
-        return <QueryEditorParameters {...this.props} />
+        return <ParameterQueryEditor {...this.props} />
       default:
         return <div>Missing UI for query type: {query.queryType}</div>;
     }

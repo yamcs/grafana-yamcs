@@ -5,8 +5,9 @@ export interface YamcsOptions extends DataSourceJsonData {
 }
 
 export enum QueryType {
-  ParameterSamples = 'ParameterSamples',
   ListEvents = 'ListEvents',
+  ParameterValue = 'ParameterValue',
+  ParameterSamples = 'ParameterSamples',
 }
 
 export enum StatType {
@@ -27,6 +28,10 @@ export interface ParameterSamplesQuery extends YamcsQuery {
   stats: StatType[];
 }
 
+export interface ParameterValueQuery extends YamcsQuery {
+  queryType: QueryType.ParameterValue;
+}
+
 export interface ListEventsQuery extends YamcsQuery {
   queryType: QueryType.ListEvents;
   source?: string;
@@ -37,5 +42,17 @@ export interface SystemInfo extends SelectableValue<string> {
 }
 
 export interface ParameterInfo extends SelectableValue<string> {
-  engType: string;
+  engType: EngType;
 }
+
+export type EngType = 'AGGREGATE'
+  | 'ARRAY'
+  | 'BINARY'
+  | 'BOOLEAN'
+  | 'ENUMERATION'
+  | 'FLOAT'
+  | 'INTEGER'
+  | 'NO TYPE'
+  | 'STRING'
+  | 'TIME'
+  ;

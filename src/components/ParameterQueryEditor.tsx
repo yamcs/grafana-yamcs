@@ -2,6 +2,7 @@ import { SelectableValue } from '@grafana/data';
 import { AsyncSelect, InlineField } from '@grafana/ui';
 import { debounce } from 'lodash';
 import React, { PureComponent } from 'react';
+import { Dictionary } from '../Dictionary';
 import { getDefaultStat } from '../queryInfo';
 import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../types';
 import { statRegistry, StatsPicker } from './StatsPicker';
@@ -14,12 +15,13 @@ interface State {
     loading: boolean;
 }
 
-export class QueryEditorParameters extends PureComponent<Props, State> {
+export class ParameterQueryEditor extends PureComponent<Props, State> {
     state: State = {
         loading: true,
     };
 
     debouncedSearch: any;
+    dictionary?: Dictionary;
 
     constructor(props: Props) {
         super(props);
@@ -66,9 +68,9 @@ export class QueryEditorParameters extends PureComponent<Props, State> {
     private async updateParameterInfo() {
         const { query, datasource } = this.props;
         const update: State = { loading: false };
-        const cache = datasource.getCache();
         if (query?.parameter) {
-            update.parameter = await cache.getParameterInfo(query.parameter);
+            const dictionary = await datasource.loadDictionary();
+            update.parameter = dictionary.getParameterInfo(query.parameter);
         }
         this.setState(update);
     }
@@ -76,7 +78,7 @@ export class QueryEditorParameters extends PureComponent<Props, State> {
     onParameterChange = (sel: SelectableValue<string>) => {
         const { onChange, query, onRunQuery } = this.props;
         let update: YamcsQuery = { ...query, parameter: sel?.value };
-        // Make sure the selected aggregates are actually supported
+        // Make sure the selected stats are actually supported
         if (update.queryType === QueryType.ParameterSamples) {
             if (update.parameter) {
                 const samplesUpdate = update as ParameterSamplesQuery;
@@ -119,8 +121,8 @@ export class QueryEditorParameters extends PureComponent<Props, State> {
     }
 
     render() {
-        /*const {query} = this.props;
-        const { loading, parameter} = this.state;
+        const { query } = this.props;
+        /*const { loading, parameter} = this.state;
 
         let currentParameter: ParameterInfo | undefined = undefined;
         if (!currentParameter && query.parameter) {
@@ -143,6 +145,8 @@ export class QueryEditorParameters extends PureComponent<Props, State> {
             }
         }*/
 
+        const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
+
         return (
             <>
                 <div className="gf-form">
@@ -164,8 +168,7 @@ export class QueryEditorParameters extends PureComponent<Props, State> {
                         />
                     </InlineField>
                 </div>
-                {this.props.query?.queryType === QueryType.ParameterSamples
-                    && this.renderStatsRow(this.props.query as any)}
+                {showStats && this.renderStatsRow(this.props.query as any)}
             </>
         );
     };

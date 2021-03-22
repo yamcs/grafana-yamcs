@@ -74,6 +74,54 @@ export interface Samples {
     sample: Sample[];
 }
 
+export interface ParameterValue {
+    engValue: Value;
+    generationTime: string;
+    acquisitionTime: string;
+    acquisitionStatus: string;
+    processingStatus: boolean;
+    monitoringResult: string;
+    rangeCondition: string;
+}
+
+export interface Value {
+    type: Type;
+    floatValue: number;
+    doubleValue: number;
+    sint32Value: number;
+    uint32Value: number;
+    binaryValue: string;  // Base64
+    stringValue: string;
+    timestampValue: string;  // String decimal
+    uint64Value: string;  // String decimal
+    sint64Value: string;  // String decimal
+    booleanValue: boolean;
+    aggregateValue: AggregateValue;
+    arrayValue: Value[];
+}
+
+export interface AggregateValue {
+    name: string[];
+    value: Value[];
+}
+
+export enum Type {
+    FLOAT = "FLOAT",
+    DOUBLE = "DOUBLE",
+    UINT32 = "UINT32",
+    SINT32 = "SINT32",
+    BINARY = "BINARY",
+    STRING = "STRING",
+    TIMESTAMP = "TIMESTAMP",
+    UINT64 = "UINT64",
+    SINT64 = "SINT64",
+    BOOLEAN = "BOOLEAN",
+    AGGREGATE = "AGGREGATE",
+    ARRAY = "ARRAY",
+    ENUMERATED = "ENUMERATED",
+    NONE = "NONE",
+}
+
 export class YamcsClient {
 
     private instance: string;
@@ -87,6 +135,16 @@ export class YamcsClient {
         const response = await this.doRequest<Instance>({
             method: 'GET',
             url: `/api/instances/${encodedInstance}`,
+        });
+        return response.data;
+    }
+
+    async getParameterValue(parameter: string): Promise<ParameterValue> {
+        const encodedInstance = encodeURIComponent(this.instance);
+        const encodedName = encodeURIComponent(parameter);
+        const response = await this.doRequest<ParameterValue>({
+            method: 'GET',
+            url: `/api/processors/${encodedInstance}/realtime/parameters${encodedName}`,
         });
         return response.data;
     }
