@@ -1,10 +1,11 @@
 import { SelectableValue } from '@grafana/data';
-import { AsyncSelect, InlineField } from '@grafana/ui';
+import { CompletionItemGroup, InlineField, TypeaheadOutput } from '@grafana/ui';
 import { debounce } from 'lodash';
 import React, { PureComponent } from 'react';
-import { Dictionary } from '../Dictionary';
-import { getDefaultStat } from '../queryInfo';
-import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../types';
+import { Dictionary } from '../../Dictionary';
+import { getDefaultStat } from '../../queryInfo';
+import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
+import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
 import { statRegistry, StatsPicker } from './StatsPicker';
 import { YamcsQueryEditorProps } from './types';
 
@@ -48,6 +49,41 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         }
     }
 
+    onTypeahead = async (input: string): Promise<TypeaheadOutput> => {
+        const suggestions = await this.suggestParameters(input);
+        return { suggestions };
+    }
+
+    private async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
+        const page = await this.props.datasource.yamcs.listParameters({ q, limit: 15 });
+
+        // Group by space system
+        const groups = new Map<String, CompletionItemGroup>();
+        for (const parameter of (page.parameters || [])) {
+            const spaceSystem = this.extractSpacesystem(parameter.qualifiedName);
+            let group = groups.get(spaceSystem);
+            if (!group) {
+                group = {
+                    label: spaceSystem,
+                    items: [],
+                };
+                groups.set(spaceSystem, group);
+            }
+            group.items.push({
+                label: parameter.name,
+                filterText: parameter.qualifiedName.toLowerCase(),
+                insertText: parameter.qualifiedName,
+                documentation: parameter.longDescription || parameter.shortDescription,
+            })
+        }
+        return [...groups.values()];
+    }
+
+    private extractSpacesystem(qualifiedName: string) {
+        const idx = qualifiedName.lastIndexOf('/');
+        return (idx === -1) ? qualifiedName : qualifiedName.substring(0, idx);
+    }
+
     loadAsyncOptions = (query: string) => {
         return this.props.datasource.yamcs.listParameters({
             q: query,
@@ -75,9 +111,9 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         this.setState(update);
     }
 
-    onParameterChange = (sel: SelectableValue<string>) => {
+    onParameterChange = (parameter?: string) => {
         const { onChange, query, onRunQuery } = this.props;
-        let update: YamcsQuery = { ...query, parameter: sel?.value };
+        let update: YamcsQuery = { ...query, parameter };
         // Make sure the selected stats are actually supported
         if (update.queryType === QueryType.ParameterSamples) {
             if (update.parameter) {
@@ -122,31 +158,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
 
     render() {
         const { query } = this.props;
-        /*const { loading, parameter} = this.state;
-
-        let currentParameter: ParameterInfo | undefined = undefined;
-        if (!currentParameter && query.parameter) {
-            if (loading) {
-                    currentParameter = {
-                        label: 'loading...',
-                        value: query.parameter,
-                    };
-            } else if (parameter) {
-                    currentParameter = {
-                        label: parameter.value!,
-                        value: query.parameter,
-                        description: query.parameter,
-                    };
-            } else {
-                    currentParameter = {
-                        label: query.parameter,
-                        value: query.parameter,
-                    };
-            }
-        }*/
-
         const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
-
         return (
             <>
                 <div className="gf-form">
@@ -155,16 +167,12 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
                         label="Parameter"
                         tooltip="Fully qualified name"
                         grow={true}>
-                        <AsyncSelect
-                            loadingMessage="Loading parameters..."
-                            noOptionsMessage="Type to search"
-                            loadOptions={this.debouncedSearch}
-                            value={this.state.parameter}
-                            onChange={this.onParameterChange}
-                            placeholder="Select a parameter"
-                            isClearable={true}
-                            isSearchable={true}
-                            allowCustomValue={false}
+                        <AutocompleteField
+                            onTypeahead={this.onTypeahead}
+                            onSelectSuggestion={this.onParameterChange}
+                            onBlur={this.onParameterChange}
+                            placeholder="Type to search"
+                            query={query.parameter}
                         />
                     </InlineField>
                 </div>

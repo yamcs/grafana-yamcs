@@ -2,9 +2,9 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { InlineField, Select } from '@grafana/ui';
 import defaults from 'lodash/defaults';
 import React, { PureComponent } from 'react';
-import { DataSource } from '../DataSource';
-import { changeQueryType, QueryTypeInfo, yamcsQueryTypes } from '../queryInfo';
-import { QueryType, YamcsOptions, YamcsQuery } from '../types';
+import { DataSource } from '../../DataSource';
+import { changeQueryType, QueryTypeInfo, yamcsQueryTypes } from '../../queryInfo';
+import { QueryType, YamcsOptions, YamcsQuery } from '../../types';
 import { ParameterQueryEditor } from './ParameterQueryEditor';
 
 export interface Props extends QueryEditorProps<DataSource, YamcsQuery, YamcsOptions> {

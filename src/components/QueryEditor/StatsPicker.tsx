@@ -1,7 +1,7 @@
 import { Registry, SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
 import React, { PureComponent } from 'react';
-import { ParameterInfo, StatType } from '../types';
+import { ParameterInfo, StatType } from '../../types';
 
 interface Props {
     parameterInfo?: ParameterInfo;

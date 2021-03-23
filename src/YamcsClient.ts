@@ -6,6 +6,8 @@ export interface Parameter {
     name: string;
     qualifiedName: string;
     type?: ParameterType;
+    shortDescription?: string;
+    longDescription?: string;
 }
 
 export interface ParameterType {
