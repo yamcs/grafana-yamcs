@@ -197,7 +197,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       minRange: Math.floor((stop - start) / n),
       maxValues: 5,
     });
-    return frameParameterRanges(query.refId, ranges);
+    return frameParameterRanges(query.refId, start, stop, ranges);
   }
 
   private async queryParameterSamples(

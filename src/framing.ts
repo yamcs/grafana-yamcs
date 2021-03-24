@@ -21,7 +21,12 @@ interface Substitution {
     replacement: DataPoint;
 }
 
-export function frameParameterRanges(refId: string, ranges: ParameterRange[]): MutableDataFrame {
+export function frameParameterRanges(
+    refId: string,
+    requestStart: number,
+    requestStop: number,
+    ranges: ParameterRange[],
+): MutableDataFrame {
     const frame = new MutableDataFrame({
         refId,
         fields: [{
@@ -33,12 +38,27 @@ export function frameParameterRanges(refId: string, ranges: ParameterRange[]): M
         }],
     });
 
-
     const substitutions = new Map<string, Substitution>();
-
     const points = [];
     const uniqueReturnedValues = new Set<string>();
+
+    // Leading gap
+    if (ranges.length) {
+        const firstRangeStart = parseTime(ranges[0].timeStart);
+        if (firstRangeStart > requestStart) {
+            points.push({ time: requestStart, value: null, count: 0 });
+        }
+    }
+
+    let previousStop;
     for (const range of ranges) {
+        const start = parseTime(range.timeStart);
+
+        // Insert a gap
+        if (previousStop && previousStop !== start) {
+            points.push({ time: previousStop, value: null, count: 0 });
+        }
+
         const result = extractMostFrequentValues(range);
         points.push(result.point);
         if (result.point.value !== null) {
@@ -57,6 +77,13 @@ export function frameParameterRanges(refId: string, ranges: ParameterRange[]): M
                 });
             }
         }
+
+        previousStop = parseTime(range.timeStop);
+    }
+
+    // Trailing gap
+    if (previousStop && previousStop < requestStop) {
+        points.push({ time: previousStop, value: null, count: 0 });
     }
 
     for (const substitution of substitutions.values()) {
