@@ -8,6 +8,7 @@ export enum QueryType {
   ListEvents = 'ListEvents',
   ParameterValue = 'ParameterValue',
   ParameterSamples = 'ParameterSamples',
+  ParameterRanges = 'ParameterRanges',
 }
 
 export enum StatType {
@@ -26,6 +27,10 @@ export interface YamcsQuery extends DataQuery {
 export interface ParameterSamplesQuery extends YamcsQuery {
   queryType: QueryType.ParameterSamples;
   stats: StatType[];
+}
+
+export interface ParameterRangesQuery extends YamcsQuery {
+  queryType: QueryType.ParameterRanges;
 }
 
 export interface ParameterValueQuery extends YamcsQuery {

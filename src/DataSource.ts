@@ -7,7 +7,7 @@ import {
   MutableDataFrame
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
-import { ListEventsQuery, ParameterSamplesQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
+import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
@@ -61,10 +61,12 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       switch (target.queryType) {
         case QueryType.ListEvents:
           return this.queryEvents(request, target as ListEventsQuery);
-        case QueryType.ParameterValue:
-          return this.queryParameterValue(request, target);
+        case QueryType.ParameterRanges:
+          return this.queryParameterRanges(request, target as ParameterRangesQuery);
         case QueryType.ParameterSamples:
           return this.queryParameterSamples(request, target as ParameterSamplesQuery);
+        case QueryType.ParameterValue:
+          return this.queryParameterValue(request, target);
         default:
           throw new Error(`Unexpected query type ${target.queryType}`);
       }
@@ -173,6 +175,50 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       frame.add(value);
     }
 
+    return frame;
+  }
+
+  private async queryParameterRanges(
+    request: DataQueryRequest<YamcsQuery>,
+    query: ParameterRangesQuery,
+  ) {
+    const frame = new MutableDataFrame({
+      refId: query.refId,
+      fields: [{
+        name: 'time',
+        type: FieldType.time,
+      }, {
+        name: 'value',
+        type: FieldType.string,
+      }],
+    });
+
+    if (!query.parameter) {
+      return frame;
+    }
+
+    const start = request.range!.from.toDate().getTime();
+    const stop = request.range!.to.toDate().getTime();
+
+    const n = request.maxDataPoints || 400;
+    const ranges = await this.yamcs.getParameterRanges(query.parameter, {
+      start: request.range!.from.toISOString(),
+      stop: request.range!.to.toISOString(),
+      // maxValues: 1,
+      minRange: Math.floor((stop - start) / n),
+    });
+
+    console.log('resp', ranges);
+
+    for (const range of ranges) {
+      const value: { [key: string]: any } = {
+        time: this.parseTime(range.timeStart),
+      };
+      if (range.engValues?.length) {
+        value['value'] = utils.printValue(range.engValues[0]);
+      }
+      frame.add(value);
+    }
     return frame;
   }
 

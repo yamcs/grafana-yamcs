@@ -76,6 +76,25 @@ export interface Samples {
     sample: Sample[];
 }
 
+export interface ParameterRange {
+    timeStart: string;
+    timeStop: string;
+    count: number;
+    engValues: Value[];
+    counts: number[];
+}
+
+export interface RangeOptions {
+    start: string;
+    stop: string;
+    minRange?: number;
+    maxValues?: number;
+}
+
+export interface ParameterRanges {
+    range: ParameterRange[];
+}
+
 export interface ParameterValue {
     engValue: Value;
     generationTime: string;
@@ -160,6 +179,17 @@ export class YamcsClient {
             params: options,
         });
         return response.data.sample || [];
+    }
+
+    async getParameterRanges(parameter: string, options: RangeOptions): Promise<ParameterRange[]> {
+        const encodedInstance = encodeURIComponent(this.instance);
+        const encodedName = encodeURIComponent(parameter);
+        const response = await this.doRequest<ParameterRanges>({
+            method: 'GET',
+            url: `/api/archive/${encodedInstance}/parameters${encodedName}/ranges`,
+            params: options,
+        });
+        return response.data.range || [];
     }
 
     async listParameters(options: ListParametersOptions = {}) {
