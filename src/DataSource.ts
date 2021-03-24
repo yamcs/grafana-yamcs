@@ -4,10 +4,12 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   FieldType,
-  MutableDataFrame
+  MutableDataFrame,
+  PluginMeta
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
+import { migrateQuery } from './migrations';
 import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
@@ -53,23 +55,41 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
   }
 
+  async importQueries?(queries: YamcsQuery[], originMeta: PluginMeta): Promise<YamcsQuery[]> {
+    if (originMeta.id === 'flilzkov-yamcs-datasource') {
+      return Promise.all(
+        queries.map(async (query: any) => {
+          const q = {
+            refId: query.refId,
+            queryType: QueryType.ParameterSamples,
+            parameter: '/' + query.param,
+          };
+          return q;
+        })
+      );
+    }
+
+    return queries;
+  }
+
   /**
    * Accepts a query from the user, retrieves the data from Yamcs,
    * and returns the data in a format that Grafana recognizes.
    */
   async query(request: DataQueryRequest<YamcsQuery>): Promise<DataQueryResponse> {
     const promises = request.targets.map(async target => {
-      switch (target.queryType) {
+      const q = migrateQuery(target);
+      switch (q.queryType) {
         case QueryType.ListEvents:
-          return this.queryEvents(request, target as ListEventsQuery);
+          return this.queryEvents(request, q as ListEventsQuery);
         case QueryType.ParameterRanges:
-          return this.queryParameterRanges(request, target as ParameterRangesQuery);
+          return this.queryParameterRanges(request, q as ParameterRangesQuery);
         case QueryType.ParameterSamples:
-          return this.queryParameterSamples(request, target as ParameterSamplesQuery);
+          return this.queryParameterSamples(request, q as ParameterSamplesQuery);
         case QueryType.ParameterValue:
-          return this.queryParameterValue(request, target);
+          return this.queryParameterValue(request, q);
         default:
-          throw new Error(`Unexpected query type ${target.queryType}`);
+          throw new Error(`Unexpected query type ${q.queryType}`);
       }
     });
 

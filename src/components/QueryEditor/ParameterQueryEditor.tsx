@@ -3,6 +3,7 @@ import { CompletionItemGroup, InlineField, TypeaheadOutput } from '@grafana/ui';
 import { debounce } from 'lodash';
 import React, { PureComponent } from 'react';
 import { Dictionary } from '../../Dictionary';
+import { migrateQuery } from '../../migrations';
 import { getDefaultStat } from '../../queryInfo';
 import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
 import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
@@ -157,7 +158,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     }
 
     render() {
-        const { query } = this.props;
+        const query = migrateQuery(this.props.query);
         const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
         return (
             <>
@@ -176,7 +177,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
                         />
                     </InlineField>
                 </div>
-                {showStats && this.renderStatsRow(this.props.query as any)}
+                {showStats && this.renderStatsRow(query as any)}
             </>
         );
     };
