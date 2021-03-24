@@ -7,6 +7,7 @@ import {
   MutableDataFrame
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
+import { frameParameterRanges } from './framing';
 import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
@@ -182,44 +183,21 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterRangesQuery,
   ) {
-    const frame = new MutableDataFrame({
-      refId: query.refId,
-      fields: [{
-        name: 'time',
-        type: FieldType.time,
-      }, {
-        name: 'value',
-        type: FieldType.string,
-      }],
-    });
-
     if (!query.parameter) {
-      return frame;
+      return;
     }
-
     const start = request.range!.from.toDate().getTime();
     const stop = request.range!.to.toDate().getTime();
 
-    const n = request.maxDataPoints || 400;
+    const maxRanges = 500;
+    const n = Math.min(request.maxDataPoints || maxRanges, maxRanges);
     const ranges = await this.yamcs.getParameterRanges(query.parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
-      // maxValues: 1,
       minRange: Math.floor((stop - start) / n),
+      maxValues: 5,
     });
-
-    console.log('resp', ranges);
-
-    for (const range of ranges) {
-      const value: { [key: string]: any } = {
-        time: this.parseTime(range.timeStart),
-      };
-      if (range.engValues?.length) {
-        value['value'] = utils.printValue(range.engValues[0]);
-      }
-      frame.add(value);
-    }
-    return frame;
+    return frameParameterRanges(query.refId, ranges);
   }
 
   private async queryParameterSamples(

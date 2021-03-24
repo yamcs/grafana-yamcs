@@ -100,7 +100,6 @@ export interface ParameterValue {
     generationTime: string;
     acquisitionTime: string;
     acquisitionStatus: string;
-    processingStatus: boolean;
     monitoringResult: string;
     rangeCondition: string;
 }
