@@ -82,7 +82,8 @@ export function frameParameterRanges(
     }
 
     // Trailing gap
-    if (previousStop && previousStop < requestStop) {
+    const tolerance = (requestStop - requestStart) * 0.01;
+    if (previousStop && (requestStop - previousStop) > tolerance) {
         points.push({ time: previousStop, value: null, count: 0 });
     }
 
