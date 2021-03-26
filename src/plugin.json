@@ -30,12 +30,12 @@
     ],
     "screenshots": [
       {
-        "name": "Dashboard Example",
-        "path": "img/dashboardExample.png"
+        "name": "Dashboard",
+        "path": "img/dashboard.png"
       },
       {
-        "name": "Query Example",
-        "path": "img/queryExample.png"
+        "name": "Explore",
+        "path": "img/explore.png"
       }
     ],
     "version": "%VERSION%",
