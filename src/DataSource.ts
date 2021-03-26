@@ -237,24 +237,36 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
           frame.addField({
             name: 'avg',
             type: FieldType.number,
+            config: {
+              displayName: `avg(${query.parameter})`,
+            }
           });
           break;
         case StatType.MIN:
           frame.addField({
             name: 'min',
             type: FieldType.number,
+            config: {
+              displayName: `min(${query.parameter})`,
+            }
           });
           break;
         case StatType.MAX:
           frame.addField({
             name: 'max',
             type: FieldType.number,
+            config: {
+              displayName: `max(${query.parameter})`,
+            }
           });
           break;
         case StatType.COUNT:
           frame.addField({
             name: 'count',
             type: FieldType.number,
+            config: {
+              displayName: `count(${query.parameter})`,
+            }
           });
           break;
       }
