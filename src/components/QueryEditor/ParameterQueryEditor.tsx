@@ -1,6 +1,4 @@
-import { SelectableValue } from '@grafana/data';
 import { CompletionItemGroup, InlineField, TypeaheadOutput } from '@grafana/ui';
-import { debounce } from 'lodash';
 import React, { PureComponent } from 'react';
 import { Dictionary } from '../../Dictionary';
 import { migrateQuery } from '../../migrations';
@@ -22,16 +20,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         loading: true,
     };
 
-    debouncedSearch: any;
     dictionary?: Dictionary;
-
-    constructor(props: Props) {
-        super(props);
-        this.debouncedSearch = debounce(this.loadAsyncOptions, 300, {
-            leading: true,
-            trailing: true,
-        });
-    }
 
     async componentDidMount() {
         this.updateParameterInfo();
@@ -84,23 +73,6 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         const idx = qualifiedName.lastIndexOf('/');
         return (idx === -1) ? qualifiedName : qualifiedName.substring(0, idx);
     }
-
-    loadAsyncOptions = (query: string) => {
-        return this.props.datasource.yamcs.listParameters({
-            q: query,
-            limit: 20,
-        }).then(page => {
-            const result: Array<SelectableValue<string>> = [];
-            for (const parameter of (page.parameters || [])) {
-                result.push({
-                    label: parameter.qualifiedName,
-                    value: parameter.qualifiedName,
-                    description: parameter.type?.engType.toUpperCase(),
-                });
-            }
-            return result;
-        });
-    };
 
     private async updateParameterInfo() {
         const { query, datasource } = this.props;
