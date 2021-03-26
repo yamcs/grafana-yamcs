@@ -1,7 +1,7 @@
 # Yamcs Datasource for Grafana
 
-![dashboardExample](https://raw.githubusercontent.com/yamcs/grafana-yamcs/master/src/img/dashboardExample.png)
-![queryExample](https://raw.githubusercontent.com/yamcs/grafana-yamcs/master/src/img/queryExample.png)
+![Dashboard](https://raw.githubusercontent.com/yamcs/grafana-yamcs/master/src/img/dashboard.png)
+![Explore](https://raw.githubusercontent.com/yamcs/grafana-yamcs/master/src/img/explore.png)
 
 ## Summary
 
@@ -27,7 +27,7 @@ Follow [these](https://grafana.com/docs/grafana/latest/getting-started/getting-s
 
 ### Install a prebuilt version using the Grafana CLI 
 ```bash
-grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/archive/v1.0.0.zip plugins install yamcs-datasource
+grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/archive/v2.0.0.zip plugins install yamcs-datasource
 systemctl restart grafana-server
 ```
 
@@ -38,7 +38,7 @@ systemctl restart grafana-server
 
 Clone this repository
 ```bash
-cd path/to/grafana/plugin/directory
+cd /path/to/grafana/plugin/directory
 git clone https://github.com/yamcs/grafana-yamcs.git
 cd grafana-yamcs
 yarn install
@@ -52,31 +52,12 @@ systemctl restart grafana-server
 ```
 
 
-## Usage
-Run the yamcs simulator in one terminal :
-```bash
-cd path/to/yamcs
-./run-example.sh simulation
-```
-
-On `localhost:3000` you should find the Grafana homepage.
-
-Add a datasource : on `localhost:3000/datasources` -> add a datasource -> search for *Yamcs*.
-
-You should now be able to configure this datasource and select it when editing a dashboard panel.
-
-
 ## Configuration
 
-### Instructions
+Add a datasource (search for *Yamcs*)
 
-Enter the name of your Yamcs Server in the *Host name* field.
-
-Enter the name of your Yamcs instance in the *Instance* field.
-
-You can have multiple instances of this plugin with different configurations.
-
-You can test your configuration using the `Save & Test` button.
+Enter the URL to your Yamcs Server (from the point of view of the Grafana server)
+Test and confirm the settings using the `Save & Test` button.
 
 
 ## Current Limitations
