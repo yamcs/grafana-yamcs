@@ -7,6 +7,7 @@ export interface YamcsOptions extends DataSourceJsonData {
 export enum QueryType {
   ListEvents = 'ListEvents',
   ParameterValue = 'ParameterValue',
+  ParameterValueHistory = 'ParameterValueHistory',
   ParameterSamples = 'ParameterSamples',
   ParameterRanges = 'ParameterRanges',
 }
@@ -35,6 +36,10 @@ export interface ParameterRangesQuery extends YamcsQuery {
 
 export interface ParameterValueQuery extends YamcsQuery {
   queryType: QueryType.ParameterValue;
+}
+
+export interface ParameterValueHistoryQuery extends YamcsQuery {
+  queryType: QueryType.ParameterValueHistory;
 }
 
 export interface ListEventsQuery extends YamcsQuery {

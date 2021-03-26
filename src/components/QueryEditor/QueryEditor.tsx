@@ -34,6 +34,7 @@ export class QueryEditor extends PureComponent<Props> {
       case QueryType.ParameterRanges:
       case QueryType.ParameterSamples:
       case QueryType.ParameterValue:
+      case QueryType.ParameterValueHistory:
         return <ParameterQueryEditor {...this.props} />
       default:
         return <div>Missing UI for query type: {query.queryType}</div>;

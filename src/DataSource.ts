@@ -10,7 +10,7 @@ import {
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
 import { migrateQuery } from './migrations';
-import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
+import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
@@ -85,16 +85,21 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
         case QueryType.ParameterRanges:
           return this.queryParameterRanges(request, q as ParameterRangesQuery);
         case QueryType.ParameterSamples:
-          return this.queryParameterSamples(request, q as ParameterSamplesQuery);
+          const c = this.queryParameterSamples(request, q as ParameterSamplesQuery);
+          return c;
         case QueryType.ParameterValue:
-          return this.queryParameterValue(request, q);
+          return this.queryParameterValue(request, q as ParameterValueQuery);
+        case QueryType.ParameterValueHistory:
+          return this.queryParameterValueHistory(request, q as ParameterValueHistoryQuery);
         default:
           throw new Error(`Unexpected query type ${q.queryType}`);
       }
     });
 
     // Wait for all requests to finish before returning the data
-    return Promise.all(promises).then(data => ({ data }));
+    return Promise.all(promises).then(data => {
+      return { data: data.filter(response => response !== undefined) };
+    });
   }
 
   private getFieldTypeForParameter(parameter?: string) {
@@ -174,9 +179,6 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       }, {
         name: 'status',
         type: FieldType.string,
-      }, {
-        name: 'receptionTime',
-        type: FieldType.time,
       }],
     });
 
@@ -189,13 +191,64 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       const value: { [key: string]: any } = {
         time: this.parseTime(pval.generationTime),
         monitoringResult: pval.monitoringResult,
+        rangeCondition: pval.rangeCondition,
         status: pval.acquisitionStatus,
-        receptionTime: this.parseTime(pval.acquisitionTime),
       };
-      value[query.parameter] = this.getFieldValueForParameterValue(pval.engValue, valueType);
+      value[query.parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
       frame.add(value);
     }
 
+    return frame;
+  }
+
+  private async queryParameterValueHistory(
+    request: DataQueryRequest<YamcsQuery>,
+    query: ParameterValueHistoryQuery,
+  ) {
+    await this.dictionary?.loadDictionary();
+
+    const valueType = this.getFieldTypeForParameter(query.parameter);
+    const frame = new MutableDataFrame({
+      refId: query.refId,
+      fields: [{
+        name: 'time',
+        type: FieldType.time,
+      }, {
+        name: query.parameter || 'value',
+        type: valueType,
+      }, {
+        name: 'monitoringResult',
+        type: FieldType.string,
+      }, {
+        name: 'rangeCondition',
+        type: FieldType.string,
+      }, {
+        name: 'status',
+        type: FieldType.string,
+      }],
+    });
+
+    if (!query.parameter) {
+      return;
+    }
+
+    const page = await this.yamcs.listParameterValueHistory(query.parameter, {
+      start: request.range!.from.toISOString(),
+      stop: request.range!.to.toISOString(),
+      limit: 500,
+    });
+    for (const pval of (page.parameter || [])) {
+      if (pval.engValue) {
+        const value: { [key: string]: any } = {
+          time: this.parseTime(pval.generationTime),
+          monitoringResult: pval.monitoringResult,
+          rangeCondition: pval.rangeCondition,
+          status: pval.acquisitionStatus,
+        };
+        value[query.parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
+        frame.add(value);
+      }
+    }
     return frame;
   }
 
@@ -224,6 +277,10 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterSamplesQuery,
   ) {
+    if (!query.parameter) {
+      return;
+    }
+
     const frame = new MutableDataFrame({
       refId: query.refId,
       fields: [{
@@ -231,7 +288,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
         type: FieldType.time,
       }],
     });
-    for (const stat of query.stats) {
+    for (const stat of (query?.stats || [])) {
       switch (stat) {
         case StatType.AVG:
           frame.addField({
@@ -270,10 +327,6 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
           });
           break;
       }
-    }
-
-    if (!query.parameter) {
-      return frame;
     }
 
     const samples = await this.yamcs.sampleParameter(query.parameter, {

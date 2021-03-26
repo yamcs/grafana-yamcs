@@ -1,5 +1,5 @@
 import { SelectableValue } from "@grafana/data";
-import { ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueQuery, QueryType, StatType, YamcsQuery } from "./types";
+import { ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, YamcsQuery } from "./types";
 
 export interface QueryTypeInfo extends SelectableValue<QueryType> {
     value: QueryType;
@@ -22,6 +22,11 @@ export const yamcsQueryTypes: QueryTypeInfo[] = [
         value: QueryType.ParameterValue,
         description: 'Get a parameter\'s current value',
         defaultQuery: {} as ParameterValueQuery,
+    }, {
+        label: 'Get parameter value history',
+        value: QueryType.ParameterValueHistory,
+        description: 'Gets the history of a parameter\'s value (limited)',
+        defaultQuery: {} as ParameterValueHistoryQuery,
     }, {
         label: 'List events',
         value: QueryType.ListEvents,

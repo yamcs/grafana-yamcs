@@ -35,6 +35,18 @@ export interface ListParametersPage {
     continuationToken?: string;
 }
 
+export interface ListParameterValueHistoryOptions {
+    start?: string;
+    stop?: string;
+    limit?: number;
+    next?: string;
+}
+
+export interface ListParameterValueHistoryPage {
+    parameter?: ParameterValue[];
+    continuationToken?: string;
+}
+
 export interface Event {
     generationTime: string;
     receptionTime: string;
@@ -189,6 +201,17 @@ export class YamcsClient {
             params: options,
         });
         return response.data.range || [];
+    }
+
+    async listParameterValueHistory(parameter: string, options: ListParameterValueHistoryOptions = {}) {
+        const encodedInstance = encodeURIComponent(this.instance);
+        const encodedName = encodeURIComponent(parameter);
+        const response = await this.doRequest<ListParameterValueHistoryPage>({
+            method: 'GET',
+            url: `/api/archive/${encodedInstance}/parameters${encodedName}`,
+            params: options,
+        });
+        return response.data;
     }
 
     async listParameters(options: ListParametersOptions = {}) {
