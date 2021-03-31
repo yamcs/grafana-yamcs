@@ -27,7 +27,7 @@ Follow [these](https://grafana.com/docs/grafana/latest/getting-started/getting-s
 
 ### Install a prebuilt version using the Grafana CLI 
 ```bash
-grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/archive/v2.0.0.zip plugins install yamcs-datasource
+grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/releases/download/v2.0.0/yamcs-yamcs-datasource-2.0.0.zip plugins install yamcs-yamcs-datasource
 systemctl restart grafana-server
 ```
 
