@@ -82,7 +82,10 @@ export const TypeaheadItem: React.FC<Props> = (props: Props) => {
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <Highlighter textToHighlight={label} searchWords={[prefix]} highlightClassName={highlightClassName} />
+      <Highlighter textToHighlight={label}
+        searchWords={[prefix]}
+        highlightClassName={highlightClassName}
+        autoEscape={true} />
     </li>
   );
 };
