@@ -45,7 +45,11 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     }
 
     private async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
-        const page = await this.props.datasource.yamcs.listParameters({ q, limit: 15 });
+        const page = await this.props.datasource.yamcs.listParameters({
+            q,
+            limit: 15,
+            searchMembers: true,
+        });
 
         // Group by space system
         const groups = new Map<String, CompletionItemGroup>();
@@ -59,10 +63,18 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
                 };
                 groups.set(spaceSystem, group);
             }
+            let path = '';
+            for (const segment of parameter.path || []) {
+                if (segment.startsWith('[')) {
+                    path += segment;
+                } else {
+                    path += '.' + segment;
+                }
+            }
             group.items.push({
-                label: parameter.name,
-                filterText: parameter.qualifiedName.toLowerCase(),
-                insertText: parameter.qualifiedName,
+                label: parameter.name + path,
+                filterText: (parameter.qualifiedName + path).toLowerCase(),
+                insertText: parameter.qualifiedName + path,
                 documentation: parameter.longDescription || parameter.shortDescription,
             })
         }

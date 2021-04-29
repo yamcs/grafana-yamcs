@@ -6,6 +6,7 @@ export interface Parameter {
     name: string;
     qualifiedName: string;
     type?: ParameterType;
+    path?: string[];
     shortDescription?: string;
     longDescription?: string;
 }
@@ -25,6 +26,7 @@ export interface Instance {
 
 export interface ListParametersOptions {
     q?: string;
+    searchMembers?: boolean;
     limit?: number;
     next?: string;
 }

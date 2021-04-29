@@ -24,7 +24,6 @@ const getStyles = (theme: GrafanaTheme) => ({
     font-family: ${theme.typography.fontFamily.monospace};
     padding: ${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.md};
     font-size: ${theme.typography.size.sm};
-    text-overflow: ellipsis;
     overflow: hidden;
     z-index: 11;
     display: block;
