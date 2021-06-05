@@ -102,11 +102,15 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     });
   }
 
-  private getFieldTypeForParameter(parameter?: string) {
-    if (!parameter) {
-      return FieldType.other;
+  private getParameterInfo(parameter?: string): ParameterInfo | undefined {
+    if (parameter) {
+      return this.dictionary?.getParameterInfo(parameter);
     }
-    const info = this.dictionary?.getParameterInfo(parameter);
+    return undefined;
+  }
+
+  private getFieldTypeForParameter(parameter?: string) {
+    const info = this.getParameterInfo(parameter);
     if (!info) {
       return FieldType.other;
     }
@@ -208,6 +212,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     await this.dictionary?.loadDictionary();
 
     const valueType = this.getFieldTypeForParameter(query.parameter);
+    const unit = this.getParameterInfo(query.parameter)?.units;
     const frame = new MutableDataFrame({
       refId: query.refId,
       fields: [{
@@ -216,6 +221,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       }, {
         name: query.parameter || 'value',
         type: valueType,
+        config: { unit }
       }, {
         name: 'monitoringResult',
         type: FieldType.string,
@@ -270,7 +276,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       minRange: Math.floor((stop - start) / n),
       maxValues: 5,
     });
-    return frameParameterRanges(query.refId, start, stop, ranges);
+    const unit = this.getParameterInfo(query.parameter)?.units;
+    return frameParameterRanges(query.refId, start, stop, ranges, unit);
   }
 
   private async queryParameterSamples(
@@ -280,6 +287,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     if (!query.parameter) {
       return;
     }
+
+    const unit = this.getParameterInfo(query.parameter)?.units;
 
     const frame = new MutableDataFrame({
       refId: query.refId,
@@ -296,6 +305,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             type: FieldType.number,
             config: {
               displayName: `avg(${query.parameter})`,
+              unit,
             }
           });
           break;
@@ -305,6 +315,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             type: FieldType.number,
             config: {
               displayName: `min(${query.parameter})`,
+              unit,
             }
           });
           break;
@@ -314,6 +325,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             type: FieldType.number,
             config: {
               displayName: `max(${query.parameter})`,
+              unit,
             }
           });
           break;

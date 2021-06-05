@@ -26,6 +26,7 @@ export function frameParameterRanges(
     requestStart: number,
     requestStop: number,
     ranges: ParameterRange[],
+    unit?: string,
 ): MutableDataFrame {
     const frame = new MutableDataFrame({
         refId,
@@ -35,6 +36,7 @@ export function frameParameterRanges(
         }, {
             name: 'value',
             type: FieldType.string,
+            config: { unit },
         }],
     });
 

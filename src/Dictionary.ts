@@ -1,13 +1,19 @@
 import { DataSource } from './DataSource';
-import { EngType, ParameterInfo } from './types';
+import { EngType, ParameterInfo, RawType } from './types';
 import { ListParametersPage, Parameter } from './YamcsClient';
 
 function mapToParameterInfo(parameter: Parameter): ParameterInfo {
+    const rawType = (parameter.dataEncoding?.type || 'NO TYPE') as RawType;
     const engType = (parameter.type?.engType.toUpperCase() || 'NO TYPE') as EngType;
-    let description = engType;
+
+    let units = undefined;
     if (parameter.type?.unitSet) {
-        description += ' • '
-        description += parameter.type.unitSet.map(u => u.unit).join(' ');
+        units = parameter.type.unitSet.map(u => u.unit).join(' ');
+    }
+
+    let description = engType;
+    if (units) {
+        description += ' • ' + units;
     }
 
     return {
@@ -15,6 +21,8 @@ function mapToParameterInfo(parameter: Parameter): ParameterInfo {
         value: parameter.qualifiedName,
         description,
         engType,
+        rawType,
+        units,
     };
 }
 

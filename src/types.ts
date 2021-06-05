@@ -53,6 +53,7 @@ export interface SystemInfo extends SelectableValue<string> {
 
 export interface ParameterInfo extends SelectableValue<string> {
   engType: EngType;
+  units?: string;
 }
 
 export type EngType = 'AGGREGATE'
