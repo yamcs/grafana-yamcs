@@ -77,6 +77,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
    * and returns the data in a format that Grafana recognizes.
    */
   async query(request: DataQueryRequest<YamcsQuery>): Promise<DataQueryResponse> {
+    await this.dictionary?.loadDictionary();
+
     const promises = request.targets.map(async target => {
       const q = migrateQuery(target);
       switch (q.queryType) {
@@ -182,8 +184,6 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterValueQuery,
   ) {
-    await this.dictionary?.loadDictionary();
-
     let valueType = this.getFieldTypeForParameter(query.parameter);
     let unit = this.getParameterInfo(query.parameter)?.units;
     let parameterName = query.parameter || 'value';
@@ -245,8 +245,6 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterValueHistoryQuery,
   ) {
-    await this.dictionary?.loadDictionary();
-
     const rawValueType = this.getRawFieldTypeForParameter(query.parameter);
     const valueType = this.getFieldTypeForParameter(query.parameter);
     const unit = this.getParameterInfo(query.parameter)?.units;
