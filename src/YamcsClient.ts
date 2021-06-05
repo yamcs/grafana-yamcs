@@ -9,6 +9,7 @@ export interface Parameter {
     path?: string[];
     shortDescription?: string;
     longDescription?: string;
+    dataEncoding?: DataEncoding;
 }
 
 export interface ParameterType {
@@ -18,6 +19,10 @@ export interface ParameterType {
 
 export interface UnitInfo {
     unit: string;
+}
+
+export interface DataEncoding {
+    type: string;
 }
 
 export interface Instance {
@@ -76,6 +81,7 @@ export interface SampleOptions {
     start: string;
     stop: string;
     count?: number;
+    useRawValue?: boolean;
 }
 
 export interface Sample {
@@ -110,6 +116,7 @@ export interface ParameterRanges {
 }
 
 export interface ParameterValue {
+    rawValue: Value;
     engValue: Value;
     generationTime: string;
     acquisitionTime: string;

@@ -5,6 +5,7 @@ import { migrateQuery } from '../../migrations';
 import { getDefaultStat } from '../../queryInfo';
 import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
 import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
+import { ConversionRow } from './ConversionRow';
 import { statRegistry, StatsPicker } from './StatsPicker';
 import { YamcsQueryEditorProps } from './types';
 
@@ -144,6 +145,9 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     render() {
         const query = migrateQuery(this.props.query);
         const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
+        const showConversion = query.parameter && (
+            // query.queryType === QueryType.ParameterSamples ||
+            query.queryType === QueryType.ParameterValue);
         return (
             <>
                 <div className="gf-form">
@@ -162,6 +166,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
                     </InlineField>
                 </div>
                 {showStats && this.renderStatsRow(query as any)}
+                {showConversion && <ConversionRow {...(this.props as any)} />}
             </>
         );
     };

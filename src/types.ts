@@ -12,6 +12,11 @@ export enum QueryType {
   ParameterRanges = 'ParameterRanges',
 }
 
+export enum ConversionType {
+  RAW = 'RAW',
+  ENGINEERING = 'ENGINEERING',
+}
+
 export enum StatType {
   AVG = 'AVG',
   COUNT = 'COUNT',
@@ -28,6 +33,7 @@ export interface YamcsQuery extends DataQuery {
 export interface ParameterSamplesQuery extends YamcsQuery {
   queryType: QueryType.ParameterSamples;
   stats: StatType[];
+  conversion?: ConversionType;
 }
 
 export interface ParameterRangesQuery extends YamcsQuery {
@@ -36,6 +42,7 @@ export interface ParameterRangesQuery extends YamcsQuery {
 
 export interface ParameterValueQuery extends YamcsQuery {
   queryType: QueryType.ParameterValue;
+  conversion?: ConversionType;
 }
 
 export interface ParameterValueHistoryQuery extends YamcsQuery {
@@ -53,6 +60,7 @@ export interface SystemInfo extends SelectableValue<string> {
 
 export interface ParameterInfo extends SelectableValue<string> {
   engType: EngType;
+  rawType: RawType;
   units?: string;
 }
 
@@ -66,4 +74,11 @@ export type EngType = 'AGGREGATE'
   | 'NO TYPE'
   | 'STRING'
   | 'TIME'
+  ;
+
+export type RawType = 'BINARY'
+  | 'BOOLEAN'
+  | 'FLOAT'
+  | 'INTEGER'
+  | 'STRING'
   ;

@@ -10,7 +10,7 @@ import {
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
 import { migrateQuery } from './migrations';
-import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
+import { ConversionType, ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
@@ -134,6 +134,25 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
   }
 
+  private getRawFieldTypeForParameter(parameter?: string) {
+    const info = this.getParameterInfo(parameter);
+    if (!info) {
+      return FieldType.other;
+    }
+    switch (info.dataEncoding?.type) {
+      case 'FLOAT':
+      case 'INTEGER':
+        return FieldType.number;
+      case 'BOOLEAN':
+        return FieldType.boolean;
+      case 'STRING':
+      case 'BINARY':
+        return FieldType.string;
+      default:
+        return FieldType.other;
+    }
+  }
+
   private getFieldValueForParameterValue(value: Value, target: FieldType): any {
     if (target === FieldType.boolean) {
       return value.booleanValue!;
@@ -161,19 +180,29 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
   private async queryParameterValue(
     request: DataQueryRequest<YamcsQuery>,
-    query: YamcsQuery,
+    query: ParameterValueQuery,
   ) {
     await this.dictionary?.loadDictionary();
 
-    const valueType = this.getFieldTypeForParameter(query.parameter);
+    let valueType = this.getFieldTypeForParameter(query.parameter);
+    let unit = this.getParameterInfo(query.parameter)?.units;
+    let parameterName = query.parameter || 'value';
+
+    if (query.conversion === ConversionType.RAW) {
+      valueType = this.getRawFieldTypeForParameter(query.parameter);
+      unit = undefined;
+      parameterName = query.parameter ? `raw://${query.parameter}` : 'rawValue';
+    }
+
     const frame = new MutableDataFrame({
       refId: query.refId,
       fields: [{
         name: 'time',
         type: FieldType.time,
       }, {
-        name: query.parameter || 'value',
+        name: parameterName,
         type: valueType,
+        config: { unit },
       }, {
         name: 'monitoringResult',
         type: FieldType.string,
@@ -198,7 +227,14 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
         rangeCondition: pval.rangeCondition,
         status: pval.acquisitionStatus,
       };
-      value[query.parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
+
+      if (query.conversion === 'RAW' && pval.rawValue !== undefined) {
+        value[parameterName] = this.getFieldValueForParameterValue(pval.rawValue, valueType);
+      } else if (pval.engValue !== undefined) {
+        value[parameterName] = this.getFieldValueForParameterValue(pval.engValue, valueType);
+      } else {
+        value[parameterName] = undefined;
+      }
       frame.add(value);
     }
 
@@ -211,6 +247,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
   ) {
     await this.dictionary?.loadDictionary();
 
+    const rawValueType = this.getRawFieldTypeForParameter(query.parameter);
     const valueType = this.getFieldTypeForParameter(query.parameter);
     const unit = this.getParameterInfo(query.parameter)?.units;
     const frame = new MutableDataFrame({
@@ -218,6 +255,9 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       fields: [{
         name: 'time',
         type: FieldType.time,
+      }, {
+        name: query.parameter ? `raw://${query.parameter}` : 'rawValue',
+        type: rawValueType,
       }, {
         name: query.parameter || 'value',
         type: valueType,
@@ -252,6 +292,9 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
           status: pval.acquisitionStatus,
         };
         value[query.parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
+        if (pval.rawValue) {
+          value[query.parameter ? `raw://${query.parameter}` : 'rawValue'] = this.getFieldValueForParameterValue(pval.rawValue, rawValueType);
+        }
         frame.add(value);
       }
     }
@@ -344,6 +387,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const samples = await this.yamcs.sampleParameter(query.parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
+      // useRawValue: query.conversion === ConversionType.RAW,
       count: request.maxDataPoints,
     });
     for (const sample of samples) {
