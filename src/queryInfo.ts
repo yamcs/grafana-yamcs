@@ -45,8 +45,3 @@ export function changeQueryType(q: YamcsQuery, info: QueryTypeInfo): YamcsQuery 
         queryType: info.value,
     };
 }
-
-export function getDefaultStat(parameter?: ParameterInfo): StatType {
-    // TODO use count for non-numerics?
-    return StatType.AVG;
-}

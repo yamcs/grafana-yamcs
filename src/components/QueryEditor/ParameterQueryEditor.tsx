@@ -2,11 +2,10 @@ import { CompletionItemGroup, InlineField, TypeaheadOutput } from '@grafana/ui';
 import React, { PureComponent } from 'react';
 import { Dictionary } from '../../Dictionary';
 import { migrateQuery } from '../../migrations';
-import { getDefaultStat } from '../../queryInfo';
 import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
 import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
 import { ConversionRow } from './ConversionRow';
-import { statRegistry, StatsPicker } from './StatsPicker';
+import { StatsPicker } from './StatsPicker';
 import { YamcsQueryEditorProps } from './types';
 
 type Props = YamcsQueryEditorProps<YamcsQuery | ParameterSamplesQuery | ListEventsQuery>;
@@ -99,24 +98,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
 
     onParameterChange = (parameter?: string) => {
         const { onChange, query, onRunQuery } = this.props;
-        let update: YamcsQuery = { ...query, parameter };
-        // Make sure the selected stats are actually supported
-        if (update.queryType === QueryType.ParameterSamples) {
-            if (update.parameter) {
-                const samplesUpdate = update as ParameterSamplesQuery;
-                const info = this.state.parameter;
-                if (!samplesUpdate.stats) {
-                    samplesUpdate.stats = [];
-                }
-                if (info) {
-                    samplesUpdate.stats = samplesUpdate.stats.filter(a => statRegistry.get(a).isValid(info));
-                }
-                if (!samplesUpdate.stats.length) {
-                    samplesUpdate.stats = [getDefaultStat(info)];
-                }
-            }
-        }
-        onChange(update);
+        onChange({ ...query, parameter });
         onRunQuery();
     };
 
@@ -127,14 +109,12 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     };
 
     renderStatsRow(query: ParameterSamplesQuery) {
-        const { parameter } = this.state;
         return (
             <div className="gf-form">
                 <InlineField label="Stats" labelWidth={14} grow={true}>
                     <StatsPicker
                         stats={query.stats ?? []}
                         onChange={this.onStatsChange}
-                        defaultStat={getDefaultStat(parameter)}
                         menuPlacement="bottom"
                     />
                 </InlineField>
