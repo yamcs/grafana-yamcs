@@ -1,5 +1,5 @@
 import { SelectableValue } from "@grafana/data";
-import { ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, YamcsQuery } from "./types";
+import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, YamcsQuery } from "./types";
 
 export interface QueryTypeInfo extends SelectableValue<QueryType> {
     value: QueryType;
