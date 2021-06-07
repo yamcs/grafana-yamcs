@@ -329,7 +329,10 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       return;
     }
 
-    const unit = this.getParameterInfo(query.parameter)?.units;
+    let unit;
+    if (query.conversion !== 'RAW') {
+      unit = this.getParameterInfo(query.parameter)?.units
+    }
 
     const frame = new MutableDataFrame({
       refId: query.refId,
