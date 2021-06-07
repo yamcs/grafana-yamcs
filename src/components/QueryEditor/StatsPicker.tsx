@@ -35,6 +35,10 @@ export class StatsPicker extends PureComponent<Props> {
         if (current.length !== stats.length) {
             onChange(current.map(stat => stat.id));
         }
+
+        if (stats.length === 0) {
+            onChange([StatType.AVG]);
+        }
     };
 
     onSelectionChange = (item: SelectableValue<StatType>) => {
