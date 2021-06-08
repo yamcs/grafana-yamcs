@@ -388,7 +388,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const samples = await this.yamcs.sampleParameter(query.parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
-      // useRawValue: query.conversion === ConversionType.RAW,
+      useRawValue: query.conversion === ConversionType.RAW,
       count: request.maxDataPoints,
     });
     for (const sample of samples) {

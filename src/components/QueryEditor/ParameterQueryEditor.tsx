@@ -126,7 +126,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         const query = migrateQuery(this.props.query);
         const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
         const showConversion = query.parameter && (
-            // query.queryType === QueryType.ParameterSamples ||
+            query.queryType === QueryType.ParameterSamples ||
             query.queryType === QueryType.ParameterValue);
         return (
             <>
