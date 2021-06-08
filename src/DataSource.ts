@@ -330,8 +330,12 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
 
     let unit;
+    let parameterName;
     if (query.valueKind !== 'RAW') {
       unit = this.getParameterInfo(query.parameter)?.units
+      parameterName = query.parameter;
+    } else {
+      parameterName = `raw://${query.parameter}`;
     }
 
     const frame = new MutableDataFrame({
@@ -348,7 +352,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'avg',
             type: FieldType.number,
             config: {
-              displayName: `avg(${query.parameter})`,
+              displayName: `avg(${parameterName})`,
               unit,
             }
           });
@@ -358,7 +362,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'min',
             type: FieldType.number,
             config: {
-              displayName: `min(${query.parameter})`,
+              displayName: `min(${parameterName})`,
               unit,
             }
           });
@@ -368,7 +372,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'max',
             type: FieldType.number,
             config: {
-              displayName: `max(${query.parameter})`,
+              displayName: `max(${parameterName})`,
               unit,
             }
           });
@@ -378,7 +382,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'count',
             type: FieldType.number,
             config: {
-              displayName: `count(${query.parameter})`,
+              displayName: `count(${parameterName})`,
             }
           });
           break;
