@@ -10,7 +10,7 @@ import {
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
 import { migrateQuery } from './migrations';
-import { ConversionType, ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, YamcsOptions, YamcsQuery } from './types';
+import { ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, ValueKind, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
@@ -188,7 +188,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     let unit = this.getParameterInfo(query.parameter)?.units;
     let parameterName = query.parameter || 'value';
 
-    if (query.conversion === ConversionType.RAW) {
+    if (query.valueKind === ValueKind.RAW) {
       valueType = this.getRawFieldTypeForParameter(query.parameter);
       unit = undefined;
       parameterName = query.parameter ? `raw://${query.parameter}` : 'rawValue';
@@ -228,7 +228,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
         status: pval.acquisitionStatus,
       };
 
-      if (query.conversion === 'RAW' && pval.rawValue !== undefined) {
+      if (query.valueKind === 'RAW' && pval.rawValue !== undefined) {
         value[parameterName] = this.getFieldValueForParameterValue(pval.rawValue, valueType);
       } else if (pval.engValue !== undefined) {
         value[parameterName] = this.getFieldValueForParameterValue(pval.engValue, valueType);
@@ -330,7 +330,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
 
     let unit;
-    if (query.conversion !== 'RAW') {
+    if (query.valueKind !== 'RAW') {
       unit = this.getParameterInfo(query.parameter)?.units
     }
 
@@ -388,7 +388,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const samples = await this.yamcs.sampleParameter(query.parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
-      useRawValue: query.conversion === ConversionType.RAW,
+      useRawValue: query.valueKind === ValueKind.RAW,
       count: request.maxDataPoints,
     });
     for (const sample of samples) {

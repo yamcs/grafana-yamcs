@@ -12,7 +12,7 @@ export enum QueryType {
   ParameterRanges = 'ParameterRanges',
 }
 
-export enum ConversionType {
+export enum ValueKind {
   RAW = 'RAW',
   ENGINEERING = 'ENGINEERING',
 }
@@ -33,7 +33,7 @@ export interface YamcsQuery extends DataQuery {
 export interface ParameterSamplesQuery extends YamcsQuery {
   queryType: QueryType.ParameterSamples;
   stats: StatType[];
-  conversion?: ConversionType;
+  valueKind?: ValueKind;
 }
 
 export interface ParameterRangesQuery extends YamcsQuery {
@@ -42,7 +42,7 @@ export interface ParameterRangesQuery extends YamcsQuery {
 
 export interface ParameterValueQuery extends YamcsQuery {
   queryType: QueryType.ParameterValue;
-  conversion?: ConversionType;
+  valueKind?: ValueKind;
 }
 
 export interface ParameterValueHistoryQuery extends YamcsQuery {

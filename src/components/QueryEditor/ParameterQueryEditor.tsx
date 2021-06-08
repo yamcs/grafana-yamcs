@@ -4,9 +4,9 @@ import { Dictionary } from '../../Dictionary';
 import { migrateQuery } from '../../migrations';
 import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
 import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
-import { ConversionRow } from './ConversionRow';
 import { StatsPicker } from './StatsPicker';
 import { YamcsQueryEditorProps } from './types';
+import { ValueKindRow } from './ValueKindRow';
 
 type Props = YamcsQueryEditorProps<YamcsQuery | ParameterSamplesQuery | ListEventsQuery>;
 
@@ -125,7 +125,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     render() {
         const query = migrateQuery(this.props.query);
         const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
-        const showConversion = query.parameter && (
+        const showValueKind = query.parameter && (
             query.queryType === QueryType.ParameterSamples ||
             query.queryType === QueryType.ParameterValue);
         return (
@@ -146,7 +146,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
                     </InlineField>
                 </div>
                 {showStats && this.renderStatsRow(query as any)}
-                {showConversion && <ConversionRow {...(this.props as any)} />}
+                {showValueKind && <ValueKindRow {...(this.props as any)} />}
             </>
         );
     };

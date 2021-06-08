@@ -1,21 +1,21 @@
 import { SelectableValue } from '@grafana/data';
 import { InlineField, Select } from '@grafana/ui';
 import React, { PureComponent } from 'react';
-import { ConversionType, ParameterSamplesQuery } from '../../types';
+import { ParameterSamplesQuery, ValueKind } from '../../types';
 import { YamcsQueryEditorProps } from './types';
 
 type Props = YamcsQueryEditorProps<ParameterSamplesQuery>;
 
-const conversionTypes: Array<SelectableValue<ConversionType>> = [
-    { value: ConversionType.RAW, label: 'RAW' },
-    { value: ConversionType.ENGINEERING, label: 'ENGINEERING' },
+const valueKinds: Array<SelectableValue<ValueKind>> = [
+    { value: ValueKind.RAW, label: 'RAW' },
+    { value: ValueKind.ENGINEERING, label: 'ENGINEERING' },
 ];
 
-export class ConversionRow extends PureComponent<Props> {
+export class ValueKindRow extends PureComponent<Props> {
 
-    onConversionChange = (sel: SelectableValue<ConversionType>) => {
+    onValueKindChange = (sel: SelectableValue<ValueKind>) => {
         const { onChange, query, onRunQuery } = this.props;
-        onChange({ ...query, conversion: sel.value });
+        onChange({ ...query, valueKind: sel.value });
         onRunQuery();
     };
 
@@ -24,12 +24,12 @@ export class ConversionRow extends PureComponent<Props> {
         return (
             <>
                 <div className="gf-form">
-                    <InlineField label="Conversion" labelWidth={14}>
+                    <InlineField label="Value" labelWidth={14}>
                         <Select
                             width={20}
-                            options={conversionTypes}
-                            value={conversionTypes.find(v => v.value === query.conversion) ?? conversionTypes[1]}
-                            onChange={this.onConversionChange}
+                            options={valueKinds}
+                            value={valueKinds.find(v => v.value === query.valueKind) ?? valueKinds[1]}
+                            onChange={this.onValueKindChange}
                             isSearchable={true}
                             menuPlacement="bottom"
                         />
