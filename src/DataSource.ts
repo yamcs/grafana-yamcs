@@ -396,22 +396,38 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       count: request.maxDataPoints,
     });
     for (const sample of samples) {
-      const value: { [key: string]: number } = {
+      const value: { [key: string]: number | null } = {
         time: this.parseTime(sample.time),
       };
       for (const stat of query.stats) {
         switch (stat) {
           case StatType.AVG:
-            value['avg'] = sample.avg;
+            if (sample.n === 0) {
+              value['avg'] = null;
+            } else {
+              value['avg'] = sample.avg;
+            }
             break;
           case StatType.MIN:
-            value['min'] = sample.min;
+            if (sample.n === 0) {
+              value['min'] = null;
+            } else {
+              value['min'] = sample.min;
+            }
             break;
           case StatType.MAX:
-            value['max'] = sample.max;
+            if (sample.n === 0) {
+              value['max'] = null;
+            } else {
+              value['max'] = sample.max;
+            }
             break;
           case StatType.COUNT:
-            value['count'] = sample.n;
+            if (sample.n === 0) {
+              value['count'] = null;
+            } else {
+              value['count'] = sample.n;
+            }
             break;
         }
       }
