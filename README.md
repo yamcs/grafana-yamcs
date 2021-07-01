@@ -15,7 +15,17 @@ grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/releases/download
 systemctl restart grafana-server
 ```
 
-**Note:** This plugin is not yet available from the central Grafana.com plugin directory, that is why for now the use of the `--pluginUrl` argument is required.
+**Note:**
+
+* This plugin is not yet available from the central Grafana.com plugin directory, that is why for now the use of the `--pluginUrl` argument is required.
+
+* This plugin is unsigned for now. As of Grafana 8 you can only use unsigned plugins by adding the following to your `grafana.ini`:
+
+      allow_loading_unsigned_plugins = yamcs-yamcs-datasource
+
+  Or, use an environment variable:
+
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=yamcs-yamcs-datasource
 
 
 ## Configuration
