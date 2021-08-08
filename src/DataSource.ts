@@ -79,7 +79,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
   async query(request: DataQueryRequest<YamcsQuery>): Promise<DataQueryResponse> {
     await this.dictionary?.loadDictionary();
 
-    const promises = request.targets.map(async target => {
+    // The "hide" property is enabled, when a user has disabled a specific query.
+    const promises = request.targets.filter(t => !t.hide).map(async target => {
       const q = migrateQuery(target);
       switch (q.queryType) {
         case QueryType.ListEvents:
