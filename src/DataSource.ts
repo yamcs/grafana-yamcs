@@ -8,29 +8,26 @@ import {
   PluginMeta
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
-import { DictionaryEntry } from './DictionaryEntry';
 import { frameParameterRanges } from './framing';
 import { migrateQuery } from './migrations';
 import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, ValueKind, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
+function parseTime(isostring: string): number {
+  const date = new Date(Date.parse(isostring));
+  return date.getTime();
+}
+
 export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
-  private dictionary?: Dictionary;
+  readonly dictionary: Dictionary;
   readonly yamcs: YamcsClient;
 
   constructor(private settings: DataSourceInstanceSettings<YamcsOptions>) {
     super(settings);
     this.yamcs = new YamcsClient(settings);
-  }
-
-  async loadDictionary() {
-    if (!this.dictionary) {
-      this.dictionary = new Dictionary(this);
-      await this.dictionary.loadDictionary();
-    }
-    return this.dictionary;
+    this.dictionary = new Dictionary(this);
   }
 
   /**
@@ -78,7 +75,6 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
    * and returns the data in a format that Grafana recognizes.
    */
   async query(request: DataQueryRequest<YamcsQuery>): Promise<DataQueryResponse> {
-    await this.dictionary?.loadDictionary();
 
     // The "hide" property is enabled, when a user has disabled a specific query.
     const promises = request.targets.filter(t => !t.hide).map(async target => {
@@ -105,18 +101,11 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     });
   }
 
-  private getDictionaryEntry(name?: string): DictionaryEntry | undefined {
-    if (name) {
-      return this.dictionary?.getEntry(name);
-    }
-    return undefined;
-  }
-
   private getFieldValueForParameterValue(value: Value, target: FieldType): any {
     if (target === FieldType.boolean) {
       return value.booleanValue!;
     } else if (target === FieldType.time) {
-      return this.parseTime(value.stringValue!);
+      return parseTime(value.stringValue!);
     } else if (target === FieldType.number) {
       switch (value.type) {
         case Type.DOUBLE:
@@ -141,15 +130,20 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterValueQuery,
   ) {
-    const entry = this.getDictionaryEntry(query.parameter);
-
-    let valueType = entry?.grafanaFieldType || FieldType.other;
-    let unit = entry?.units;
-    let parameterName = entry?.name || 'value';
-    if (query.valueKind === ValueKind.RAW) {
-      valueType = entry?.grafanaRawFieldType || FieldType.other;
-      unit = undefined;
-      parameterName = entry?.name ? `raw://${entry.name}` : 'rawValue';
+    let parameterName = (query.valueKind === ValueKind.RAW) ? 'rawValue' : 'value';
+    let valueType = FieldType.other;
+    let unit;
+    if (query.parameter) {
+      const entry = await this.dictionary.getEntry(query.parameter);
+      if (query.valueKind === ValueKind.RAW) {
+        valueType = entry.grafanaRawFieldType;
+        unit = undefined;
+        parameterName = `raw://${entry.name}`;
+      } else {
+        valueType = entry.grafanaFieldType;
+        unit = entry.units;
+        parameterName = entry.name;
+      }
     }
 
     const frame = new MutableDataFrame({
@@ -180,7 +174,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const pval = await this.yamcs.getParameterValue(query.parameter);
     if (pval.engValue) {
       const value: { [key: string]: any } = {
-        time: this.parseTime(pval.generationTime),
+        time: parseTime(pval.generationTime),
         monitoringResult: pval.monitoringResult,
         rangeCondition: pval.rangeCondition,
         status: pval.acquisitionStatus,
@@ -203,10 +197,16 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterValueHistoryQuery,
   ) {
-    const entry = this.getDictionaryEntry(query.parameter);
-    const rawValueType = entry?.grafanaRawFieldType || FieldType.other;
-    const valueType = entry?.grafanaFieldType || FieldType.other;
-    const unit = entry?.units;
+    let rawValueType = FieldType.other;
+    let valueType = FieldType.other;
+    let unit;
+    if (query.parameter) {
+      const entry = await this.dictionary.getEntry(query.parameter);
+      rawValueType = entry.grafanaRawFieldType;
+      valueType = entry.grafanaFieldType;
+      unit = entry.units;
+    }
+
     const frame = new MutableDataFrame({
       refId: query.refId,
       fields: [{
@@ -243,7 +243,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     for (const pval of (page.parameter || [])) {
       if (pval.engValue) {
         const value: { [key: string]: any } = {
-          time: this.parseTime(pval.generationTime),
+          time: parseTime(pval.generationTime),
           monitoringResult: pval.monitoringResult,
           rangeCondition: pval.rangeCondition,
           status: pval.acquisitionStatus,
@@ -276,8 +276,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       minRange: Math.floor((stop - start) / n),
       maxValues: 5,
     });
-    const entry = this.getDictionaryEntry(query.parameter);
-    const unit = entry?.units;
+    const entry = await this.dictionary.getEntry(query.parameter);
+    const unit = entry.units;
     return frameParameterRanges(query.refId, start, stop, ranges, unit);
   }
 
@@ -291,12 +291,12 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
     let unit;
     let parameterName;
-    if (query.valueKind !== 'RAW') {
-      const entry = this.getDictionaryEntry(query.parameter);
-      unit = entry?.units;
-      parameterName = query.parameter;
-    } else {
+    if (query.valueKind === 'RAW') {
       parameterName = `raw://${query.parameter}`;
+    } else {
+      const entry = await this.dictionary.getEntry(query.parameter);
+      parameterName = query.parameter;
+      unit = entry.units;
     }
 
     const frame = new MutableDataFrame({
@@ -358,7 +358,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     });
     for (const sample of samples) {
       const value: { [key: string]: number | null } = {
-        time: this.parseTime(sample.time),
+        time: parseTime(sample.time),
       };
       for (const stat of query.stats) {
         switch (stat) {
@@ -431,7 +431,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     });
     for (const event of (page.event || [])) {
       frame.add({
-        time: this.parseTime(event.generationTime),
+        time: parseTime(event.generationTime),
         message: event.message,
         source: event.source,
         type: event.type,
@@ -441,10 +441,5 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
 
     return frame;
-  }
-
-  private parseTime(isostring: string): number {
-    const date = new Date(Date.parse(isostring));
-    return date.getTime();
   }
 }

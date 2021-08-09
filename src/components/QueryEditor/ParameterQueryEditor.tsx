@@ -91,8 +91,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         const { query, datasource } = this.props;
         const update: State = { loading: false };
         if (query?.parameter) {
-            const dictionary = await datasource.loadDictionary();
-            update.parameter = dictionary.getEntry(query.parameter);
+            update.parameter = await datasource.dictionary.getEntry(query.parameter);
         }
         this.setState(update);
     }

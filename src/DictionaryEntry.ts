@@ -1,6 +1,6 @@
 import { FieldType } from "@grafana/data";
 import { EngType, RawType } from "./types";
-import { Parameter } from "./YamcsClient";
+import { Parameter, ParameterType } from "./YamcsClient";
 
 export class DictionaryEntry {
 
@@ -8,27 +8,26 @@ export class DictionaryEntry {
     }
 
     get name() {
-        return this.parameter.qualifiedName;
+        return this.parameter.qualifiedName + this.getEntryPath();
     }
 
     get shortName() {
-        return this.parameter.name;
+        return this.parameter.name + this.getEntryPath();
     }
 
     get units() {
-        const { type } = this.parameter;
-        if (type?.unitSet) {
-            return type.unitSet.map(u => u.unit).join(' ');
-        }
-        return;
+        const ptype = this.getParameterType();
+        return ptype?.unitSet?.map(u => u.unit).join(' ');
     }
 
     get rawType() {
-        return (this.parameter.dataEncoding?.type || 'NO TYPE') as RawType;
+        const ptype = this.getParameterType();
+        return (ptype?.dataEncoding?.type.toUpperCase() || 'NO TYPE') as RawType;
     }
 
     get engType() {
-        return (this.parameter.type?.engType.toUpperCase() || 'NO TYPE') as EngType;
+        const ptype = this.getParameterType();
+        return (ptype?.engType.toUpperCase() || 'NO TYPE') as EngType;
     }
 
     get description() {
@@ -62,7 +61,7 @@ export class DictionaryEntry {
     }
 
     get grafanaRawFieldType() {
-        switch (this.parameter.dataEncoding?.type) {
+        switch (this.rawType) {
             case 'FLOAT':
             case 'INTEGER':
                 return FieldType.number;
@@ -74,5 +73,55 @@ export class DictionaryEntry {
             default:
                 return FieldType.other;
         }
+    }
+
+    /**
+     * In case of an array or aggregate member, this returns
+     * the path relative to the actual parameter name.
+     * 
+     * Note that aggregate members and array entries are not
+     * full-fledged parameters, rather we make them look like
+     * that. In truth, only the aggregate or array itself is
+     * a parameter.
+     */
+    private getEntryPath() {
+        let result = '';
+        const { path } = this.parameter;
+        if (path) {
+            for (let i = 0; i < path.length; i++) {
+                const el = path[i];
+                if (el.startsWith('[')) {
+                    result += el;
+                } else {
+                    result += '.' + el;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the ParameterType applicable to the parameter,
+     * or a specific entry (in the case of array/aggregate
+     * members)
+     */
+    private getParameterType() {
+        if (!this.parameter.path) {
+            return this.parameter.type;
+        }
+        let ptype = this.parameter.type!;
+        for (const segment of this.parameter.path) {
+            if (segment.startsWith('[')) {
+                ptype = ptype.arrayInfo!.type;
+            } else {
+                for (const member of (ptype.member || [])) {
+                    if (member.name === segment) {
+                        ptype = member.type as ParameterType;
+                        break;
+                    }
+                }
+            }
+        }
+        return ptype;
     }
 }

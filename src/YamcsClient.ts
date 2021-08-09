@@ -9,12 +9,24 @@ export interface Parameter {
     path?: string[];
     shortDescription?: string;
     longDescription?: string;
-    dataEncoding?: DataEncoding;
 }
 
 export interface ParameterType {
     engType: string;
-    unitSet: UnitInfo[];
+    dataEncoding?: DataEncoding;
+    arrayInfo?: ArrayInfo;
+    unitSet?: UnitInfo[];
+    member: Member[];
+}
+
+export interface ArrayInfo {
+    type: ParameterType;
+    dimensions: number;
+}
+
+export interface Member {
+    name: string;
+    type: ParameterType;
 }
 
 export interface UnitInfo {
@@ -229,6 +241,16 @@ export class YamcsClient {
             method: 'GET',
             url: `/api/mdb/${encodedInstance}/parameters`,
             params: options,
+        });
+        return response.data;
+    }
+
+    async getParameter(parameter: string) {
+        const encodedInstance = encodeURIComponent(this.instance);
+        const encodedName = encodeURIComponent(parameter);
+        const response = await this.doRequest<Parameter>({
+            method: 'GET',
+            url: `/api/mdb/${encodedInstance}/parameters${encodedName}`,
         });
         return response.data;
     }
