@@ -1,34 +1,10 @@
 import { DataSource } from './DataSource';
-import { EngType, ParameterInfo, RawType } from './types';
-import { ListParametersPage, Parameter } from './YamcsClient';
-
-function mapToParameterInfo(parameter: Parameter): ParameterInfo {
-    const rawType = (parameter.dataEncoding?.type || 'NO TYPE') as RawType;
-    const engType = (parameter.type?.engType.toUpperCase() || 'NO TYPE') as EngType;
-
-    let units = undefined;
-    if (parameter.type?.unitSet) {
-        units = parameter.type.unitSet.map(u => u.unit).join(' ');
-    }
-
-    let description = engType;
-    if (units) {
-        description += ' • ' + units;
-    }
-
-    return {
-        label: parameter.qualifiedName,
-        value: parameter.qualifiedName,
-        description,
-        engType,
-        rawType,
-        units,
-    };
-}
+import { DictionaryEntry } from './DictionaryEntry';
+import { ListParametersPage } from './YamcsClient';
 
 export class Dictionary {
     private loaded = false;
-    private parametersById = new Map<string, ParameterInfo>();
+    private entriesByName = new Map<string, DictionaryEntry>();
 
     constructor(private dataSource: DataSource) {
     }
@@ -38,7 +14,7 @@ export class Dictionary {
             return;
         }
 
-        this.parametersById.clear();
+        this.entriesByName.clear();
         let page: ListParametersPage | null = null;
         while (!page || page.continuationToken) {
             if (!page) {
@@ -47,19 +23,19 @@ export class Dictionary {
                 page = await this.dataSource.yamcs.listParameters({ next: page.continuationToken });
             }
             for (const parameter of (page.parameters || [])) {
-                const info = mapToParameterInfo(parameter);
-                this.parametersById.set(parameter.qualifiedName, info);
+                const entry = new DictionaryEntry(parameter);
+                this.entriesByName.set(entry.name, entry);
             }
         }
         this.loaded = true;
     }
 
-    getParameterInfo(id: string): ParameterInfo {
-        const v = this.parametersById.get(id);
-        if (v) {
-            return v;
+    getEntry(name: string): DictionaryEntry {
+        const entry = this.entriesByName.get(name);
+        if (entry) {
+            return entry;
         } else {
-            throw 'parameter not found';
+            throw 'entry not found';
         }
     }
 }

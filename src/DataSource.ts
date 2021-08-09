@@ -8,9 +8,10 @@ import {
   PluginMeta
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
+import { DictionaryEntry } from './DictionaryEntry';
 import { frameParameterRanges } from './framing';
 import { migrateQuery } from './migrations';
-import { ListEventsQuery, ParameterInfo, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, ValueKind, YamcsOptions, YamcsQuery } from './types';
+import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, ValueKind, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
@@ -88,8 +89,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
         case QueryType.ParameterRanges:
           return this.queryParameterRanges(request, q as ParameterRangesQuery);
         case QueryType.ParameterSamples:
-          const c = this.queryParameterSamples(request, q as ParameterSamplesQuery);
-          return c;
+          return this.queryParameterSamples(request, q as ParameterSamplesQuery);
         case QueryType.ParameterValue:
           return this.queryParameterValue(request, q as ParameterValueQuery);
         case QueryType.ParameterValueHistory:
@@ -105,55 +105,11 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     });
   }
 
-  private getParameterInfo(parameter?: string): ParameterInfo | undefined {
-    if (parameter) {
-      return this.dictionary?.getParameterInfo(parameter);
+  private getDictionaryEntry(name?: string): DictionaryEntry | undefined {
+    if (name) {
+      return this.dictionary?.getEntry(name);
     }
     return undefined;
-  }
-
-  private getFieldTypeForParameter(parameter?: string) {
-    const info = this.getParameterInfo(parameter);
-    if (!info) {
-      return FieldType.other;
-    }
-    switch (info.engType) {
-      case 'FLOAT':
-      case 'INTEGER':
-        return FieldType.number;
-      case 'BOOLEAN':
-        return FieldType.boolean;
-      case 'STRING':
-      case 'ENUMERATION':
-      case 'BINARY':
-      case 'AGGREGATE':
-      case 'ARRAY':
-      case 'NO TYPE':
-        return FieldType.string;
-      case 'TIME':
-        return FieldType.time;
-      default:
-        return FieldType.other;
-    }
-  }
-
-  private getRawFieldTypeForParameter(parameter?: string) {
-    const info = this.getParameterInfo(parameter);
-    if (!info) {
-      return FieldType.other;
-    }
-    switch (info.dataEncoding?.type) {
-      case 'FLOAT':
-      case 'INTEGER':
-        return FieldType.number;
-      case 'BOOLEAN':
-        return FieldType.boolean;
-      case 'STRING':
-      case 'BINARY':
-        return FieldType.string;
-      default:
-        return FieldType.other;
-    }
   }
 
   private getFieldValueForParameterValue(value: Value, target: FieldType): any {
@@ -185,14 +141,15 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterValueQuery,
   ) {
-    let valueType = this.getFieldTypeForParameter(query.parameter);
-    let unit = this.getParameterInfo(query.parameter)?.units;
-    let parameterName = query.parameter || 'value';
+    const entry = this.getDictionaryEntry(query.parameter);
 
+    let valueType = entry?.grafanaFieldType || FieldType.other;
+    let unit = entry?.units;
+    let parameterName = entry?.name || 'value';
     if (query.valueKind === ValueKind.RAW) {
-      valueType = this.getRawFieldTypeForParameter(query.parameter);
+      valueType = entry?.grafanaRawFieldType || FieldType.other;
       unit = undefined;
-      parameterName = query.parameter ? `raw://${query.parameter}` : 'rawValue';
+      parameterName = entry?.name ? `raw://${entry.name}` : 'rawValue';
     }
 
     const frame = new MutableDataFrame({
@@ -246,9 +203,10 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     request: DataQueryRequest<YamcsQuery>,
     query: ParameterValueHistoryQuery,
   ) {
-    const rawValueType = this.getRawFieldTypeForParameter(query.parameter);
-    const valueType = this.getFieldTypeForParameter(query.parameter);
-    const unit = this.getParameterInfo(query.parameter)?.units;
+    const entry = this.getDictionaryEntry(query.parameter);
+    const rawValueType = entry?.grafanaRawFieldType || FieldType.other;
+    const valueType = entry?.grafanaFieldType || FieldType.other;
+    const unit = entry?.units;
     const frame = new MutableDataFrame({
       refId: query.refId,
       fields: [{
@@ -318,7 +276,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       minRange: Math.floor((stop - start) / n),
       maxValues: 5,
     });
-    const unit = this.getParameterInfo(query.parameter)?.units;
+    const entry = this.getDictionaryEntry(query.parameter);
+    const unit = entry?.units;
     return frameParameterRanges(query.refId, start, stop, ranges, unit);
   }
 
@@ -333,7 +292,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     let unit;
     let parameterName;
     if (query.valueKind !== 'RAW') {
-      unit = this.getParameterInfo(query.parameter)?.units
+      const entry = this.getDictionaryEntry(query.parameter);
+      unit = entry?.units;
       parameterName = query.parameter;
     } else {
       parameterName = `raw://${query.parameter}`;

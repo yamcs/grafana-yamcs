@@ -1,8 +1,9 @@
 import { CompletionItemGroup, InlineField, TypeaheadOutput } from '@grafana/ui';
 import React, { PureComponent } from 'react';
 import { Dictionary } from '../../Dictionary';
+import { DictionaryEntry } from '../../DictionaryEntry';
 import { migrateQuery } from '../../migrations';
-import { ListEventsQuery, ParameterInfo, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
+import { ListEventsQuery, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
 import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
 import { StatsPicker } from './StatsPicker';
 import { YamcsQueryEditorProps } from './types';
@@ -11,7 +12,7 @@ import { ValueKindRow } from './ValueKindRow';
 type Props = YamcsQueryEditorProps<YamcsQuery | ParameterSamplesQuery | ListEventsQuery>;
 
 interface State {
-    parameter?: ParameterInfo;
+    parameter?: DictionaryEntry;
     loading: boolean;
 }
 
@@ -91,7 +92,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
         const update: State = { loading: false };
         if (query?.parameter) {
             const dictionary = await datasource.loadDictionary();
-            update.parameter = dictionary.getParameterInfo(query.parameter);
+            update.parameter = dictionary.getEntry(query.parameter);
         }
         this.setState(update);
     }

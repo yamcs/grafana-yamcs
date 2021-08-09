@@ -1,4 +1,4 @@
-import { DataQuery, DataSourceJsonData, SelectableValue } from '@grafana/data';
+import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface YamcsOptions extends DataSourceJsonData {
   instance?: string;
@@ -52,16 +52,6 @@ export interface ParameterValueHistoryQuery extends YamcsQuery {
 export interface ListEventsQuery extends YamcsQuery {
   queryType: QueryType.ListEvents;
   source?: string;
-}
-
-export interface SystemInfo extends SelectableValue<string> {
-  parameters: ParameterInfo[];
-}
-
-export interface ParameterInfo extends SelectableValue<string> {
-  engType: EngType;
-  rawType: RawType;
-  units?: string;
 }
 
 export type EngType = 'AGGREGATE'
