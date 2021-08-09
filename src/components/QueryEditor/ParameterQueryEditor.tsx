@@ -2,7 +2,6 @@ import { CompletionItemGroup, InlineField, TypeaheadOutput } from '@grafana/ui';
 import React, { PureComponent } from 'react';
 import { Dictionary } from '../../Dictionary';
 import { DictionaryEntry } from '../../DictionaryEntry';
-import { migrateQuery } from '../../migrations';
 import { ListEventsQuery, ParameterSamplesQuery, QueryType, StatType, YamcsQuery } from '../../types';
 import { AutocompleteField } from '../AutocompleteField/AutocompleteField';
 import { StatsPicker } from './StatsPicker';
@@ -41,8 +40,12 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     }
 
     onTypeahead = async (input: string): Promise<TypeaheadOutput> => {
-        const suggestions = await this.suggestParameters(input);
-        return { suggestions };
+        if (input.trim()) {
+            const suggestions = await this.suggestParameters(input);
+            return { suggestions };
+        } else {
+            return { suggestions: [] };
+        }
     }
 
     private async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
@@ -123,7 +126,7 @@ export class ParameterQueryEditor extends PureComponent<Props, State> {
     }
 
     render() {
-        const query = migrateQuery(this.props.query);
+        const query = this.props.query;
         const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
         const showValueKind = query.parameter && (
             query.queryType === QueryType.ParameterSamples ||

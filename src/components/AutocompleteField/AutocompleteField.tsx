@@ -1,4 +1,3 @@
-import { } from '@emotion/core';
 import { CompletionItem, CompletionItemGroup, Icon, Input, TypeaheadOutput } from '@grafana/ui';
 import React, { KeyboardEvent } from 'react';
 import { Typeahead } from '../Typeahead/Typeahead';
@@ -126,6 +125,7 @@ export class AutocompleteField extends React.PureComponent<Props, State> {
           placeholder={this.props.placeholder}
           spellCheck={false}
           value={this.state.value}
+          css=""
         />
       </>
     );

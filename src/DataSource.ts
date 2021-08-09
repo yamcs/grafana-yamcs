@@ -4,12 +4,10 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   FieldType,
-  MutableDataFrame,
-  PluginMeta
+  MutableDataFrame
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
-import { migrateQuery } from './migrations';
 import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, ValueKind, YamcsOptions, YamcsQuery } from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
@@ -53,23 +51,6 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
   }
 
-  async importQueries?(queries: YamcsQuery[], originMeta: PluginMeta): Promise<YamcsQuery[]> {
-    if (originMeta.id === 'flilzkov-yamcs-datasource') {
-      return Promise.all(
-        queries.map(async (query: any) => {
-          const q = {
-            refId: query.refId,
-            queryType: QueryType.ParameterSamples,
-            parameter: '/' + query.param,
-          };
-          return q;
-        })
-      );
-    }
-
-    return queries;
-  }
-
   /**
    * Accepts a query from the user, retrieves the data from Yamcs,
    * and returns the data in a format that Grafana recognizes.
@@ -78,20 +59,19 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
     // The "hide" property is enabled, when a user has disabled a specific query.
     const promises = request.targets.filter(t => !t.hide).map(async target => {
-      const q = migrateQuery(target);
-      switch (q.queryType) {
+      switch (target.queryType) {
         case QueryType.ListEvents:
-          return this.queryEvents(request, q as ListEventsQuery);
+          return this.queryEvents(request, target as ListEventsQuery);
         case QueryType.ParameterRanges:
-          return this.queryParameterRanges(request, q as ParameterRangesQuery);
+          return this.queryParameterRanges(request, target as ParameterRangesQuery);
         case QueryType.ParameterSamples:
-          return this.queryParameterSamples(request, q as ParameterSamplesQuery);
+          return this.queryParameterSamples(request, target as ParameterSamplesQuery);
         case QueryType.ParameterValue:
-          return this.queryParameterValue(request, q as ParameterValueQuery);
+          return this.queryParameterValue(request, target as ParameterValueQuery);
         case QueryType.ParameterValueHistory:
-          return this.queryParameterValueHistory(request, q as ParameterValueHistoryQuery);
+          return this.queryParameterValueHistory(request, target as ParameterValueHistoryQuery);
         default:
-          throw new Error(`Unexpected query type ${q.queryType}`);
+          throw new Error(`Unexpected query type ${target.queryType}`);
       }
     });
 

@@ -3,7 +3,6 @@ import { InlineField, Select } from '@grafana/ui';
 import defaults from 'lodash/defaults';
 import React, { PureComponent } from 'react';
 import { DataSource } from '../../DataSource';
-import { migrateQuery } from '../../migrations';
 import { changeQueryType, QueryTypeInfo, yamcsQueryTypes } from '../../queryInfo';
 import { QueryType, YamcsOptions, YamcsQuery } from '../../types';
 import { ParameterQueryEditor } from './ParameterQueryEditor';
@@ -42,7 +41,7 @@ export class QueryEditor extends PureComponent<Props> {
   }
 
   render() {
-    let query = migrateQuery(this.props.query);
+    let query = this.props.query;
     query = defaults(query, queryDefaults);
     const currentQueryType = yamcsQueryTypes.find(v => v.value === query.queryType);
     return (
