@@ -20,7 +20,7 @@ export const yamcsQueryTypes: QueryTypeInfo[] = [
     }, {
         label: 'Get parameter value',
         value: QueryType.ParameterValue,
-        description: 'Get a parameter\'s current value',
+        description: 'Gets a single parameter value',
         defaultQuery: {} as ParameterValueQuery,
     }, {
         label: 'Get parameter value history',

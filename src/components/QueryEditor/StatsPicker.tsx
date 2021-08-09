@@ -1,10 +1,9 @@
 import { Registry, SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
 import React, { PureComponent } from 'react';
-import { ParameterInfo, StatType } from '../../types';
+import { StatType } from '../../types';
 
 interface Props {
-    parameterInfo?: ParameterInfo;
     onChange: (stats: StatType[]) => void;
     stats: StatType[];
     className?: string;

@@ -59,6 +59,7 @@ export interface ListParameterValueHistoryOptions {
     stop?: string;
     limit?: number;
     next?: string;
+    order?: 'asc' | 'desc';
 }
 
 export interface ListParameterValueHistoryPage {

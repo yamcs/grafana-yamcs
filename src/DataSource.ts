@@ -171,7 +171,16 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       return frame;
     }
 
-    const pval = await this.yamcs.getParameterValue(query.parameter);
+    const page = await this.yamcs.listParameterValueHistory(query.parameter, {
+      stop: request.range!.to.toISOString(),
+      order: 'desc',
+      limit: 1,
+    });
+    const pval = page.parameter?.length ? page.parameter[0] : null;
+    if (!pval) {
+      return frame;
+    }
+
     if (pval.engValue) {
       const value: { [key: string]: any } = {
         time: parseTime(pval.generationTime),
