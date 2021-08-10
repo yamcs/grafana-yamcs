@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.0
+
+- Require Grafana 8.x.
+- Fix query disable not working.
+- Change 'Get parameter value' so that it respects the query range (previously it was always fetching current value).
+- Fix bugs relating to retrieval of aggregate member and array entries.
+
 ## 2.1.0
 
 - Aggregate members and array entries can now be queried. Use this in combination with Yamcs v5.5.x or later. #7
