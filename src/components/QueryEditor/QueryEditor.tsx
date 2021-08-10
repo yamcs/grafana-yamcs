@@ -7,8 +7,7 @@ import { changeQueryType, QueryTypeInfo, yamcsQueryTypes } from '../../queryInfo
 import { QueryType, YamcsOptions, YamcsQuery } from '../../types';
 import { ParameterQueryEditor } from './ParameterQueryEditor';
 
-export interface Props extends QueryEditorProps<DataSource, YamcsQuery, YamcsOptions> {
-}
+export interface Props extends QueryEditorProps<DataSource, YamcsQuery, YamcsOptions> {}
 
 const queryDefaults: Partial<YamcsQuery> = {
   queryType: QueryType.ParameterSamples,
@@ -16,7 +15,6 @@ const queryDefaults: Partial<YamcsQuery> = {
 };
 
 export class QueryEditor extends PureComponent<Props> {
-
   onQueryTypeChange = (sel: SelectableValue<QueryType>) => {
     const { onChange, query, onRunQuery } = this.props;
     onChange(changeQueryType(query, sel as QueryTypeInfo));
@@ -34,7 +32,7 @@ export class QueryEditor extends PureComponent<Props> {
       case QueryType.ParameterSamples:
       case QueryType.ParameterValue:
       case QueryType.ParameterValueHistory:
-        return <ParameterQueryEditor {...this.props} />
+        return <ParameterQueryEditor {...this.props} />;
       default:
         return <div>Missing UI for query type: {query.queryType}</div>;
     }
@@ -43,14 +41,11 @@ export class QueryEditor extends PureComponent<Props> {
   render() {
     let query = this.props.query;
     query = defaults(query, queryDefaults);
-    const currentQueryType = yamcsQueryTypes.find(v => v.value === query.queryType);
+    const currentQueryType = yamcsQueryTypes.find((v) => v.value === query.queryType);
     return (
       <>
         <div className="gf-form">
-          <InlineField label="Query type"
-            labelWidth={14}
-            grow={true}
-            tooltip="What resource are you querying for?">
+          <InlineField label="Query type" labelWidth={14} grow={true} tooltip="What resource are you querying for?">
             <Select
               options={yamcsQueryTypes}
               value={currentQueryType}

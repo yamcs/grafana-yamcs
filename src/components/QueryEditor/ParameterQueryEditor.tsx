@@ -11,146 +11,138 @@ import { ValueKindRow } from './ValueKindRow';
 type Props = YamcsQueryEditorProps<YamcsQuery | ParameterSamplesQuery | ListEventsQuery>;
 
 interface State {
-    parameter?: DictionaryEntry;
-    loading: boolean;
+  parameter?: DictionaryEntry;
+  loading: boolean;
 }
 
 export class ParameterQueryEditor extends PureComponent<Props, State> {
-    state: State = {
-        loading: true,
-    };
+  state: State = {
+    loading: true,
+  };
 
-    dictionary?: Dictionary;
+  dictionary?: Dictionary;
 
-    async componentDidMount() {
+  async componentDidMount() {
+    this.updateParameterInfo();
+  }
+
+  async componentDidUpdate(oldProps: Props) {
+    const { query } = this.props;
+    const parameterChanged = query?.parameter !== oldProps?.query?.parameter;
+    if (parameterChanged) {
+      if (!query.parameter) {
+        this.setState({ parameter: undefined });
+      } else {
+        this.setState({ loading: true });
         this.updateParameterInfo();
+      }
     }
+  }
 
-    async componentDidUpdate(oldProps: Props) {
-        const { query } = this.props;
-        const parameterChanged = query?.parameter !== oldProps?.query?.parameter;
-        if (parameterChanged) {
-            if (!query.parameter) {
-                this.setState({ parameter: undefined });
-            } else {
-                this.setState({ loading: true });
-                this.updateParameterInfo();
-            }
-        }
+  onTypeahead = async (input: string): Promise<TypeaheadOutput> => {
+    if (input.trim()) {
+      const suggestions = await this.suggestParameters(input);
+      return { suggestions };
+    } else {
+      return { suggestions: [] };
     }
+  };
 
-    onTypeahead = async (input: string): Promise<TypeaheadOutput> => {
-        if (input.trim()) {
-            const suggestions = await this.suggestParameters(input);
-            return { suggestions };
+  private async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
+    const page = await this.props.datasource.yamcs.listParameters({
+      q,
+      limit: 15,
+      searchMembers: true,
+    });
+
+    // Group by space system
+    const groups = new Map<String, CompletionItemGroup>();
+    for (const parameter of page.parameters || []) {
+      const spaceSystem = this.extractSpacesystem(parameter.qualifiedName);
+      let group = groups.get(spaceSystem);
+      if (!group) {
+        group = {
+          label: spaceSystem,
+          items: [],
+        };
+        groups.set(spaceSystem, group);
+      }
+      let path = '';
+      for (const segment of parameter.path || []) {
+        if (segment.startsWith('[')) {
+          path += segment;
         } else {
-            return { suggestions: [] };
+          path += '.' + segment;
         }
+      }
+      group.items.push({
+        label: parameter.name + path,
+        filterText: (parameter.qualifiedName + path).toLowerCase(),
+        insertText: parameter.qualifiedName + path,
+        documentation: parameter.longDescription || parameter.shortDescription,
+      });
     }
+    return [...groups.values()];
+  }
 
-    private async suggestParameters(q: string): Promise<CompletionItemGroup[]> {
-        const page = await this.props.datasource.yamcs.listParameters({
-            q,
-            limit: 15,
-            searchMembers: true,
-        });
+  private extractSpacesystem(qualifiedName: string) {
+    const idx = qualifiedName.lastIndexOf('/');
+    return idx === -1 ? qualifiedName : qualifiedName.substring(0, idx);
+  }
 
-        // Group by space system
-        const groups = new Map<String, CompletionItemGroup>();
-        for (const parameter of (page.parameters || [])) {
-            const spaceSystem = this.extractSpacesystem(parameter.qualifiedName);
-            let group = groups.get(spaceSystem);
-            if (!group) {
-                group = {
-                    label: spaceSystem,
-                    items: [],
-                };
-                groups.set(spaceSystem, group);
-            }
-            let path = '';
-            for (const segment of parameter.path || []) {
-                if (segment.startsWith('[')) {
-                    path += segment;
-                } else {
-                    path += '.' + segment;
-                }
-            }
-            group.items.push({
-                label: parameter.name + path,
-                filterText: (parameter.qualifiedName + path).toLowerCase(),
-                insertText: parameter.qualifiedName + path,
-                documentation: parameter.longDescription || parameter.shortDescription,
-            })
-        }
-        return [...groups.values()];
+  private async updateParameterInfo() {
+    const { query, datasource } = this.props;
+    const update: State = { loading: false };
+    if (query?.parameter) {
+      update.parameter = await datasource.dictionary.getEntry(query.parameter);
     }
+    this.setState(update);
+  }
 
-    private extractSpacesystem(qualifiedName: string) {
-        const idx = qualifiedName.lastIndexOf('/');
-        return (idx === -1) ? qualifiedName : qualifiedName.substring(0, idx);
-    }
+  onParameterChange = (parameter?: string) => {
+    const { onChange, query, onRunQuery } = this.props;
+    onChange({ ...query, parameter });
+    onRunQuery();
+  };
 
-    private async updateParameterInfo() {
-        const { query, datasource } = this.props;
-        const update: State = { loading: false };
-        if (query?.parameter) {
-            update.parameter = await datasource.dictionary.getEntry(query.parameter);
-        }
-        this.setState(update);
-    }
+  onStatsChange = (stats: StatType[]) => {
+    const { onChange, query, onRunQuery } = this.props;
+    onChange({ ...query, stats } as any);
+    onRunQuery();
+  };
 
-    onParameterChange = (parameter?: string) => {
-        const { onChange, query, onRunQuery } = this.props;
-        onChange({ ...query, parameter });
-        onRunQuery();
-    };
+  renderStatsRow(query: ParameterSamplesQuery) {
+    return (
+      <div className="gf-form">
+        <InlineField label="Stats" labelWidth={14} grow={true}>
+          <StatsPicker stats={query.stats ?? []} onChange={this.onStatsChange} menuPlacement="bottom" />
+        </InlineField>
+      </div>
+    );
+  }
 
-    onStatsChange = (stats: StatType[]) => {
-        const { onChange, query, onRunQuery } = this.props;
-        onChange({ ...query, stats } as any);
-        onRunQuery();
-    };
-
-    renderStatsRow(query: ParameterSamplesQuery) {
-        return (
-            <div className="gf-form">
-                <InlineField label="Stats" labelWidth={14} grow={true}>
-                    <StatsPicker
-                        stats={query.stats ?? []}
-                        onChange={this.onStatsChange}
-                        menuPlacement="bottom"
-                    />
-                </InlineField>
-            </div>
-        );
-    }
-
-    render() {
-        const query = this.props.query;
-        const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
-        const showValueKind = query.parameter && (
-            query.queryType === QueryType.ParameterSamples ||
-            query.queryType === QueryType.ParameterValue);
-        return (
-            <>
-                <div className="gf-form">
-                    <InlineField
-                        labelWidth={14}
-                        label="Parameter"
-                        tooltip="Fully qualified name"
-                        grow={true}>
-                        <AutocompleteField
-                            onTypeahead={this.onTypeahead}
-                            onSelectSuggestion={this.onParameterChange}
-                            onBlur={this.onParameterChange}
-                            placeholder="Type to search"
-                            query={query.parameter}
-                        />
-                    </InlineField>
-                </div>
-                {showStats && this.renderStatsRow(query as any)}
-                {showValueKind && <ValueKindRow {...(this.props as any)} />}
-            </>
-        );
-    };
+  render() {
+    const query = this.props.query;
+    const showStats = query.parameter && query.queryType === QueryType.ParameterSamples;
+    const showValueKind =
+      query.parameter &&
+      (query.queryType === QueryType.ParameterSamples || query.queryType === QueryType.ParameterValue);
+    return (
+      <>
+        <div className="gf-form">
+          <InlineField labelWidth={14} label="Parameter" tooltip="Fully qualified name" grow={true}>
+            <AutocompleteField
+              onTypeahead={this.onTypeahead}
+              onSelectSuggestion={this.onParameterChange}
+              onBlur={this.onParameterChange}
+              placeholder="Type to search"
+              query={query.parameter}
+            />
+          </InlineField>
+        </div>
+        {showStats && this.renderStatsRow(query as any)}
+        {showValueKind && <ValueKindRow {...(this.props as any)} />}
+      </>
+    );
+  }
 }

@@ -25,7 +25,7 @@ export class AutocompleteField extends React.PureComponent<Props, State> {
     this.state = {
       suggestions: [],
       value: props.query || '',
-    }
+    };
   }
 
   onChange = (e: any) => {
@@ -36,14 +36,14 @@ export class AutocompleteField extends React.PureComponent<Props, State> {
       if (changed) {
         if (onTypeahead) {
           requestAnimationFrame(() => {
-            onTypeahead(newValue).then(result => {
+            onTypeahead(newValue).then((result) => {
               this.setState({ suggestions: result.suggestions || [] });
             });
           });
         }
       }
     });
-  }
+  };
 
   onKeyDown = (event: KeyboardEvent) => {
     const hasSuggestions = this.state.suggestions?.length || false;
@@ -83,14 +83,17 @@ export class AutocompleteField extends React.PureComponent<Props, State> {
 
   selectSuggestion = (suggestion: CompletionItem) => {
     const newValue = suggestion.insertText!;
-    this.setState({
-      value: newValue,
-      suggestions: [],
-    }, () => {
-      if (this.props.onSelectSuggestion) {
-        this.props.onSelectSuggestion(newValue);
+    this.setState(
+      {
+        value: newValue,
+        suggestions: [],
+      },
+      () => {
+        if (this.props.onSelectSuggestion) {
+          this.props.onSelectSuggestion(newValue);
+        }
       }
-    });
+    );
   };
 
   renderMenu = () => {

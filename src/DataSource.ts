@@ -4,11 +4,22 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
   FieldType,
-  MutableDataFrame
+  MutableDataFrame,
 } from '@grafana/data';
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
-import { ListEventsQuery, ParameterRangesQuery, ParameterSamplesQuery, ParameterValueHistoryQuery, ParameterValueQuery, QueryType, StatType, ValueKind, YamcsOptions, YamcsQuery } from './types';
+import {
+  ListEventsQuery,
+  ParameterRangesQuery,
+  ParameterSamplesQuery,
+  ParameterValueHistoryQuery,
+  ParameterValueQuery,
+  QueryType,
+  StatType,
+  ValueKind,
+  YamcsOptions,
+  YamcsQuery,
+} from './types';
 import * as utils from './utils';
 import { Type, Value, YamcsClient } from './YamcsClient';
 
@@ -18,7 +29,6 @@ function parseTime(isostring: string): number {
 }
 
 export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
-
   readonly dictionary: Dictionary;
   readonly yamcs: YamcsClient;
 
@@ -56,28 +66,29 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
    * and returns the data in a format that Grafana recognizes.
    */
   async query(request: DataQueryRequest<YamcsQuery>): Promise<DataQueryResponse> {
-
     // The "hide" property is enabled, when a user has disabled a specific query.
-    const promises = request.targets.filter(t => !t.hide).map(async target => {
-      switch (target.queryType) {
-        case QueryType.ListEvents:
-          return this.queryEvents(request, target as ListEventsQuery);
-        case QueryType.ParameterRanges:
-          return this.queryParameterRanges(request, target as ParameterRangesQuery);
-        case QueryType.ParameterSamples:
-          return this.queryParameterSamples(request, target as ParameterSamplesQuery);
-        case QueryType.ParameterValue:
-          return this.queryParameterValue(request, target as ParameterValueQuery);
-        case QueryType.ParameterValueHistory:
-          return this.queryParameterValueHistory(request, target as ParameterValueHistoryQuery);
-        default:
-          throw new Error(`Unexpected query type ${target.queryType}`);
-      }
-    });
+    const promises = request.targets
+      .filter((t) => !t.hide)
+      .map(async (target) => {
+        switch (target.queryType) {
+          case QueryType.ListEvents:
+            return this.queryEvents(request, target as ListEventsQuery);
+          case QueryType.ParameterRanges:
+            return this.queryParameterRanges(request, target as ParameterRangesQuery);
+          case QueryType.ParameterSamples:
+            return this.queryParameterSamples(request, target as ParameterSamplesQuery);
+          case QueryType.ParameterValue:
+            return this.queryParameterValue(request, target as ParameterValueQuery);
+          case QueryType.ParameterValueHistory:
+            return this.queryParameterValueHistory(request, target as ParameterValueHistoryQuery);
+          default:
+            throw new Error(`Unexpected query type ${target.queryType}`);
+        }
+      });
 
     // Wait for all requests to finish before returning the data
-    return Promise.all(promises).then(data => {
-      return { data: data.filter(response => response !== undefined) };
+    return Promise.all(promises).then((data) => {
+      return { data: data.filter((response) => response !== undefined) };
     });
   }
 
@@ -106,11 +117,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     }
   }
 
-  private async queryParameterValue(
-    request: DataQueryRequest<YamcsQuery>,
-    query: ParameterValueQuery,
-  ) {
-    let parameterName = (query.valueKind === ValueKind.RAW) ? 'rawValue' : 'value';
+  private async queryParameterValue(request: DataQueryRequest<YamcsQuery>, query: ParameterValueQuery) {
+    let parameterName = query.valueKind === ValueKind.RAW ? 'rawValue' : 'value';
     let valueType = FieldType.other;
     let unit;
     if (query.parameter) {
@@ -128,23 +136,29 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
     const frame = new MutableDataFrame({
       refId: query.refId,
-      fields: [{
-        name: 'time',
-        type: FieldType.time,
-      }, {
-        name: parameterName,
-        type: valueType,
-        config: { unit },
-      }, {
-        name: 'monitoringResult',
-        type: FieldType.string,
-      }, {
-        name: 'rangeCondition',
-        type: FieldType.string,
-      }, {
-        name: 'status',
-        type: FieldType.string,
-      }],
+      fields: [
+        {
+          name: 'time',
+          type: FieldType.time,
+        },
+        {
+          name: parameterName,
+          type: valueType,
+          config: { unit },
+        },
+        {
+          name: 'monitoringResult',
+          type: FieldType.string,
+        },
+        {
+          name: 'rangeCondition',
+          type: FieldType.string,
+        },
+        {
+          name: 'status',
+          type: FieldType.string,
+        },
+      ],
     });
 
     if (!query.parameter) {
@@ -182,10 +196,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     return frame;
   }
 
-  private async queryParameterValueHistory(
-    request: DataQueryRequest<YamcsQuery>,
-    query: ParameterValueHistoryQuery,
-  ) {
+  private async queryParameterValueHistory(request: DataQueryRequest<YamcsQuery>, query: ParameterValueHistoryQuery) {
     let rawValueType = FieldType.other;
     let valueType = FieldType.other;
     let unit;
@@ -198,26 +209,33 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
     const frame = new MutableDataFrame({
       refId: query.refId,
-      fields: [{
-        name: 'time',
-        type: FieldType.time,
-      }, {
-        name: query.parameter ? `raw://${query.parameter}` : 'rawValue',
-        type: rawValueType,
-      }, {
-        name: query.parameter || 'value',
-        type: valueType,
-        config: { unit }
-      }, {
-        name: 'monitoringResult',
-        type: FieldType.string,
-      }, {
-        name: 'rangeCondition',
-        type: FieldType.string,
-      }, {
-        name: 'status',
-        type: FieldType.string,
-      }],
+      fields: [
+        {
+          name: 'time',
+          type: FieldType.time,
+        },
+        {
+          name: query.parameter ? `raw://${query.parameter}` : 'rawValue',
+          type: rawValueType,
+        },
+        {
+          name: query.parameter || 'value',
+          type: valueType,
+          config: { unit },
+        },
+        {
+          name: 'monitoringResult',
+          type: FieldType.string,
+        },
+        {
+          name: 'rangeCondition',
+          type: FieldType.string,
+        },
+        {
+          name: 'status',
+          type: FieldType.string,
+        },
+      ],
     });
 
     if (!query.parameter) {
@@ -229,7 +247,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       stop: request.range!.to.toISOString(),
       limit: 500,
     });
-    for (const pval of (page.parameter || [])) {
+    for (const pval of page.parameter || []) {
       if (pval.engValue) {
         const value: { [key: string]: any } = {
           time: parseTime(pval.generationTime),
@@ -239,7 +257,10 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
         };
         value[query.parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
         if (pval.rawValue) {
-          value[query.parameter ? `raw://${query.parameter}` : 'rawValue'] = this.getFieldValueForParameterValue(pval.rawValue, rawValueType);
+          value[query.parameter ? `raw://${query.parameter}` : 'rawValue'] = this.getFieldValueForParameterValue(
+            pval.rawValue,
+            rawValueType
+          );
         }
         frame.add(value);
       }
@@ -247,10 +268,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     return frame;
   }
 
-  private async queryParameterRanges(
-    request: DataQueryRequest<YamcsQuery>,
-    query: ParameterRangesQuery,
-  ) {
+  private async queryParameterRanges(request: DataQueryRequest<YamcsQuery>, query: ParameterRangesQuery) {
     if (!query.parameter) {
       return;
     }
@@ -270,10 +288,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     return frameParameterRanges(query.refId, start, stop, ranges, unit);
   }
 
-  private async queryParameterSamples(
-    request: DataQueryRequest<YamcsQuery>,
-    query: ParameterSamplesQuery,
-  ) {
+  private async queryParameterSamples(request: DataQueryRequest<YamcsQuery>, query: ParameterSamplesQuery) {
     if (!query.parameter) {
       return;
     }
@@ -290,12 +305,14 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
 
     const frame = new MutableDataFrame({
       refId: query.refId,
-      fields: [{
-        name: 'time',
-        type: FieldType.time,
-      }],
+      fields: [
+        {
+          name: 'time',
+          type: FieldType.time,
+        },
+      ],
     });
-    for (const stat of (query?.stats || [])) {
+    for (const stat of query?.stats || []) {
       switch (stat) {
         case StatType.AVG:
           frame.addField({
@@ -304,7 +321,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             config: {
               displayName: `avg(${parameterName})`,
               unit,
-            }
+            },
           });
           break;
         case StatType.MIN:
@@ -314,7 +331,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             config: {
               displayName: `min(${parameterName})`,
               unit,
-            }
+            },
           });
           break;
         case StatType.MAX:
@@ -324,7 +341,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             config: {
               displayName: `max(${parameterName})`,
               unit,
-            }
+            },
           });
           break;
         case StatType.COUNT:
@@ -333,7 +350,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             type: FieldType.number,
             config: {
               displayName: `count(${parameterName})`,
-            }
+            },
           });
           break;
       }
@@ -387,38 +404,42 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     return frame;
   }
 
-  private async queryEvents(
-    request: DataQueryRequest<YamcsQuery>,
-    query: ListEventsQuery,
-  ) {
+  private async queryEvents(request: DataQueryRequest<YamcsQuery>, query: ListEventsQuery) {
     const frame = new MutableDataFrame({
       refId: query.refId,
-      fields: [{
-        name: 'time',
-        type: FieldType.time,
-      }, {
-        name: 'message',
-        type: FieldType.string,
-      }, {
-        name: 'source',
-        type: FieldType.string,
-      }, {
-        name: 'type',
-        type: FieldType.string,
-      }, {
-        name: 'severity',
-        type: FieldType.string,
-      }, {
-        name: 'seqNumber',
-        type: FieldType.number,
-      }],
+      fields: [
+        {
+          name: 'time',
+          type: FieldType.time,
+        },
+        {
+          name: 'message',
+          type: FieldType.string,
+        },
+        {
+          name: 'source',
+          type: FieldType.string,
+        },
+        {
+          name: 'type',
+          type: FieldType.string,
+        },
+        {
+          name: 'severity',
+          type: FieldType.string,
+        },
+        {
+          name: 'seqNumber',
+          type: FieldType.number,
+        },
+      ],
     });
 
     const page = await this.yamcs.listEvents({
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
     });
-    for (const event of (page.event || [])) {
+    for (const event of page.event || []) {
       frame.add({
         time: parseTime(event.generationTime),
         message: event.message,

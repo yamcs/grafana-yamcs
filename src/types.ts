@@ -54,7 +54,8 @@ export interface ListEventsQuery extends YamcsQuery {
   source?: string;
 }
 
-export type EngType = 'AGGREGATE'
+export type EngType =
+  | 'AGGREGATE'
   | 'ARRAY'
   | 'BINARY'
   | 'BOOLEAN'
@@ -63,12 +64,6 @@ export type EngType = 'AGGREGATE'
   | 'INTEGER'
   | 'NO TYPE'
   | 'STRING'
-  | 'TIME'
-  ;
+  | 'TIME';
 
-export type RawType = 'BINARY'
-  | 'BOOLEAN'
-  | 'FLOAT'
-  | 'INTEGER'
-  | 'STRING'
-  ;
+export type RawType = 'BINARY' | 'BOOLEAN' | 'FLOAT' | 'INTEGER' | 'STRING';

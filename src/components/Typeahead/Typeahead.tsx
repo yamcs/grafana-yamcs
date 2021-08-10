@@ -7,7 +7,6 @@ import { TypeaheadInfo } from './TypeaheadInfo';
 import { TypeaheadItem } from './TypeaheadItem';
 import { calculateListSizes, calculateLongestLabel, flattenGroupItems } from './utils';
 
-
 const modulo = (a: number, n: number) => a - n * Math.floor(a / n);
 
 interface Props {
@@ -138,8 +137,9 @@ export class Typeahead extends React.PureComponent<Props, State> {
       const scrollX = window.scrollX;
       const scrollY = window.scrollY;
 
-      return `position: absolute; display: flex; top: ${rect.top + scrollY + rect.height + 6}px; left: ${rect.left + scrollX - 2
-        }px`;
+      return `position: absolute; display: flex; top: ${rect.top + scrollY + rect.height + 6}px; left: ${
+        rect.left + scrollX - 2
+      }px`;
     }
 
     return '';

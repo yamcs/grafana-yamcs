@@ -6,7 +6,6 @@ import { YamcsOptions } from '../../types';
 export type Props = DataSourcePluginOptionsEditorProps<YamcsOptions>;
 
 export class ConfigEditor extends PureComponent<Props> {
-
   constructor(props: Props) {
     super(props);
   }
