@@ -52,7 +52,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     try {
       await this.yamcs.fetchInstance();
       return { status: 'success', message: 'Yamcs Connection OK' };
-    } catch (err) {
+    } catch (err: any) {
       if (typeof err === 'string') {
         return { status: 'error', message: err };
       } else {
