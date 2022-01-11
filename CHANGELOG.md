@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1
+
+- Increase fetched event range from 100 to 200.
+
 ## 2.2.0
 
 - Require Grafana 8.x.
