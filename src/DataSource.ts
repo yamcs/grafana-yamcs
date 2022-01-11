@@ -438,6 +438,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const page = await this.yamcs.listEvents({
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
+      limit: 200,
     });
     for (const event of page.event || []) {
       frame.add({
