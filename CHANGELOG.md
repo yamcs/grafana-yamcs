@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.2
+
+- Fix URL issue on parameter calls. #11
+
 ## 2.2.1
 
 - Increase fetched event range from 100 to 200.
