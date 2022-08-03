@@ -198,7 +198,7 @@ export class YamcsClient {
     const encodedName = encodeURIComponent(parameter);
     const response = await this.doRequest<ParameterValue>({
       method: 'GET',
-      url: `/api/processors/${encodedInstance}/realtime/parameters${encodedName}`,
+      url: `/api/processors/${encodedInstance}/realtime/parameters/${encodedName}`,
     });
     return response.data;
   }
@@ -208,7 +208,7 @@ export class YamcsClient {
     const encodedName = encodeURIComponent(parameter);
     const response = await this.doRequest<Samples>({
       method: 'GET',
-      url: `/api/archive/${encodedInstance}/parameters${encodedName}/samples`,
+      url: `/api/archive/${encodedInstance}/parameters/${encodedName}/samples`,
       params: options,
     });
     return response.data.sample || [];
@@ -219,7 +219,7 @@ export class YamcsClient {
     const encodedName = encodeURIComponent(parameter);
     const response = await this.doRequest<ParameterRanges>({
       method: 'GET',
-      url: `/api/archive/${encodedInstance}/parameters${encodedName}/ranges`,
+      url: `/api/archive/${encodedInstance}/parameters/${encodedName}/ranges`,
       params: options,
     });
     return response.data.range || [];
@@ -230,7 +230,7 @@ export class YamcsClient {
     const encodedName = encodeURIComponent(parameter);
     const response = await this.doRequest<ListParameterValueHistoryPage>({
       method: 'GET',
-      url: `/api/archive/${encodedInstance}/parameters${encodedName}`,
+      url: `/api/archive/${encodedInstance}/parameters/${encodedName}`,
       params: options,
     });
     return response.data;
@@ -251,7 +251,7 @@ export class YamcsClient {
     const encodedName = encodeURIComponent(parameter);
     const response = await this.doRequest<Parameter>({
       method: 'GET',
-      url: `/api/mdb/${encodedInstance}/parameters${encodedName}`,
+      url: `/api/mdb/${encodedInstance}/parameters/${encodedName}`,
     });
     return response.data;
   }
