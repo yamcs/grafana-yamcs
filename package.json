@@ -11,16 +11,18 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "^8.1.1",
-    "@grafana/runtime": "^8.1.1",
-    "@grafana/toolkit": "^8.1.1",
-    "@grafana/ui": "^8.1.1",
+    "@grafana/data": "^9.5.17",
+    "@grafana/runtime": "^9.5.17",
+    "@grafana/toolkit": "^9.5.17",
+    "@grafana/ui": "^9.5.17",
     "@types/lodash": "^4.14.172",
+    "@types/react-dom": "^17.0.0",
     "@types/react-window": "^1.8.5",
     "calculate-size": "1.1.1",
     "lodash": "4.17.21",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
     "react-window": "1.8.6",
-    "rsuite": "^4.10.2",
     "tslib": "^2.3.0"
   }
 }

@@ -128,7 +128,6 @@ export class AutocompleteField extends React.PureComponent<Props, State> {
           placeholder={this.props.placeholder}
           spellCheck={false}
           value={this.state.value}
-          css=""
         />
       </>
     );

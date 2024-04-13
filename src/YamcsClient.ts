@@ -1,5 +1,6 @@
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrvRequest, getBackendSrv } from '@grafana/runtime';
+import { firstValueFrom } from 'rxjs';
 import { YamcsOptions } from './types';
 
 export interface Parameter {
@@ -283,6 +284,6 @@ export class YamcsClient {
     if (this.settings.basicAuth) {
       request.headers!.Authorization = this.settings.basicAuth;
     }
-    return getBackendSrv().fetch<T>(request).toPromise();
+    return firstValueFrom(getBackendSrv().fetch<T>(request));
   }
 }
