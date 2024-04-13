@@ -111,7 +111,15 @@ export interface Samples {
 }
 
 export interface ParameterRange {
+  start: string;
+  stop: string;
+  /**
+   * @deprecated Removed as of Yamcs 5.9.4
+   */
   timeStart: string;
+  /**
+   * @deprecated Removed as of Yamcs 5.9.4
+   */
   timeStop: string;
   count: number;
   engValues: Value[];

@@ -1,6 +1,6 @@
 import { FieldType, MutableDataFrame } from '@grafana/data';
-import * as utils from './utils';
 import { ParameterRange } from './YamcsClient';
+import * as utils from './utils';
 
 interface MostFrequentValues {
   // The most frequent value in a range
@@ -49,7 +49,7 @@ export function frameParameterRanges(
 
   // Leading gap
   if (ranges.length) {
-    const firstRangeStart = parseTime(ranges[0].timeStart);
+    const firstRangeStart = parseTime(ranges[0].start || ranges[0].timeStart);
     if (firstRangeStart > requestStart) {
       points.push({ time: requestStart, value: null, count: 0 });
     }
@@ -57,7 +57,7 @@ export function frameParameterRanges(
 
   let previousStop;
   for (const range of ranges) {
-    const start = parseTime(range.timeStart);
+    const start = parseTime(range.start || range.timeStart);
 
     // Insert a gap
     if (previousStop && previousStop !== start) {
@@ -83,7 +83,7 @@ export function frameParameterRanges(
       }
     }
 
-    previousStop = parseTime(range.timeStop);
+    previousStop = parseTime(range.stop || range.timeStop);
   }
 
   // Trailing gap
@@ -128,7 +128,7 @@ function extractMostFrequentValues(range: ParameterRange): MostFrequentValues {
     mostFrequentCount = mostFrequentNonOtherCount;
   }
 
-  const time = parseTime(range.timeStart);
+  const time = parseTime(range.start || range.timeStart);
   const result: MostFrequentValues = {
     point: { time, value: mostFrequentValue, count: mostFrequentCount },
   };
