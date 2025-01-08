@@ -4,14 +4,14 @@ The following explains how to get a development setup running.
 
 ## Incremental Builds
 
-    yarn watch
+    yarn dev
 
 
 ## Runtime
 
 Use the Docker Compose configuration to launch both Yamcs and Grafana:
 
-    docker-compose up
+    yarn server
 
 Navigate to the Grafana UI at http://localhost:3000. Select `Configuration > Data Sources` from the sidebar.
 

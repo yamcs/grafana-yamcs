@@ -11,15 +11,15 @@ This Grafana plugin allows to use Yamcs as a datasource.
 ## Installation
 
 ```bash
-grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/releases/download/v2.2.2/yamcs-yamcs-datasource-2.2.2.zip plugins install yamcs-yamcs-datasource
+grafana-cli --pluginUrl https://github.com/yamcs/grafana-yamcs/releases/download/v2.4.0/yamcs-yamcs-datasource-2.4.0.zip plugins install yamcs-yamcs-datasource
 systemctl restart grafana-server
 ```
 
 **Note:**
 
-* This plugin is not yet available from the central Grafana.com plugin directory, that is why for now the use of the `--pluginUrl` argument is required.
+* This plugin is not available from the central Grafana.com plugin directory, that is why the use of the `--pluginUrl` argument is required.
 
-* This plugin is unsigned for now. As of Grafana 8 you can only use unsigned plugins by adding the following to your `grafana.ini`:
+* This plugin is unsigned. As of Grafana 8 you can only use unsigned plugins by adding the following to your `grafana.ini`:
 
       allow_loading_unsigned_plugins = yamcs-yamcs-datasource
 

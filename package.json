@@ -1,6 +1,6 @@
 {
   "name": "@yamcs/grafana-datasource",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Yamcs datasource for Grafana",
   "private": true,
   "scripts": {
