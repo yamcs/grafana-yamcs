@@ -6,6 +6,7 @@ import {
   FieldType,
   MutableDataFrame,
 } from '@grafana/data';
+import { getTemplateSrv } from '@grafana/runtime';
 import { Dictionary } from './Dictionary';
 import { frameParameterRanges } from './framing';
 import {
@@ -122,7 +123,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     let valueType = FieldType.other;
     let unit;
     if (query.parameter) {
-      const entry = await this.dictionary.getEntry(query.parameter);
+      const parameter = getTemplateSrv().replace(query.parameter, request.scopedVars);
+      const entry = await this.dictionary.getEntry(parameter);
       if (query.valueKind === ValueKind.RAW) {
         valueType = entry.grafanaRawFieldType;
         unit = undefined;
@@ -165,7 +167,8 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       return frame;
     }
 
-    const page = await this.yamcs.listParameterValueHistory(query.parameter, {
+    const parameter = getTemplateSrv().replace(query.parameter, request.scopedVars);
+    const page = await this.yamcs.listParameterValueHistory(parameter, {
       stop: request.range!.to.toISOString(),
       order: 'desc',
       limit: 1,
@@ -200,8 +203,14 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     let rawValueType = FieldType.other;
     let valueType = FieldType.other;
     let unit;
+
+    let parameter;
     if (query.parameter) {
-      const entry = await this.dictionary.getEntry(query.parameter);
+      parameter = getTemplateSrv().replace(query.parameter, request.scopedVars);
+    }
+
+    if (parameter) {
+      const entry = await this.dictionary.getEntry(parameter);
       rawValueType = entry.grafanaRawFieldType;
       valueType = entry.grafanaFieldType;
       unit = entry.units;
@@ -215,11 +224,11 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
           type: FieldType.time,
         },
         {
-          name: query.parameter ? `raw://${query.parameter}` : 'rawValue',
+          name: parameter ? `raw://${parameter}` : 'rawValue',
           type: rawValueType,
         },
         {
-          name: query.parameter || 'value',
+          name: parameter || 'value',
           type: valueType,
           config: { unit },
         },
@@ -238,11 +247,11 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       ],
     });
 
-    if (!query.parameter) {
+    if (!parameter) {
       return;
     }
 
-    const page = await this.yamcs.listParameterValueHistory(query.parameter, {
+    const page = await this.yamcs.listParameterValueHistory(parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
       limit: 500,
@@ -255,9 +264,9 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
           rangeCondition: pval.rangeCondition,
           status: pval.acquisitionStatus,
         };
-        value[query.parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
+        value[parameter || 'value'] = this.getFieldValueForParameterValue(pval.engValue, valueType);
         if (pval.rawValue) {
-          value[query.parameter ? `raw://${query.parameter}` : 'rawValue'] = this.getFieldValueForParameterValue(
+          value[parameter ? `raw://${parameter}` : 'rawValue'] = this.getFieldValueForParameterValue(
             pval.rawValue,
             rawValueType
           );
@@ -272,18 +281,19 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     if (!query.parameter) {
       return;
     }
+    const parameter = getTemplateSrv().replace(query.parameter, request.scopedVars);
     const start = request.range!.from.toDate().getTime();
     const stop = request.range!.to.toDate().getTime();
 
     const maxRanges = 500;
     const n = Math.min(request.maxDataPoints || maxRanges, maxRanges);
-    const ranges = await this.yamcs.getParameterRanges(query.parameter, {
+    const ranges = await this.yamcs.getParameterRanges(parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
       minRange: Math.floor((stop - start) / n),
       maxValues: 5,
     });
-    const entry = await this.dictionary.getEntry(query.parameter);
+    const entry = await this.dictionary.getEntry(parameter);
     const unit = entry.units;
     return frameParameterRanges(query.refId, start, stop, ranges, unit);
   }
@@ -293,13 +303,15 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       return;
     }
 
+    const parameter = getTemplateSrv().replace(query.parameter, request.scopedVars);
+
     let unit;
-    let parameterName;
+    let displayedParameterName
     if (query.valueKind === 'RAW') {
-      parameterName = `raw://${query.parameter}`;
+      displayedParameterName = `raw://${parameter}`;
     } else {
-      const entry = await this.dictionary.getEntry(query.parameter);
-      parameterName = query.parameter;
+      const entry = await this.dictionary.getEntry(parameter);
+      displayedParameterName = parameter;
       unit = entry.units;
     }
 
@@ -319,7 +331,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'avg',
             type: FieldType.number,
             config: {
-              displayName: `avg(${parameterName})`,
+              displayName: `avg(${displayedParameterName})`,
               unit,
             },
           });
@@ -329,7 +341,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'min',
             type: FieldType.number,
             config: {
-              displayName: `min(${parameterName})`,
+              displayName: `min(${displayedParameterName})`,
               unit,
             },
           });
@@ -339,7 +351,7 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'max',
             type: FieldType.number,
             config: {
-              displayName: `max(${parameterName})`,
+              displayName: `max(${displayedParameterName})`,
               unit,
             },
           });
@@ -349,14 +361,14 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
             name: 'count',
             type: FieldType.number,
             config: {
-              displayName: `count(${parameterName})`,
+              displayName: `count(${displayedParameterName})`,
             },
           });
           break;
       }
     }
 
-    const samples = await this.yamcs.sampleParameter(query.parameter, {
+    const samples = await this.yamcs.sampleParameter(parameter, {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
       useRawValue: query.valueKind === ValueKind.RAW,
