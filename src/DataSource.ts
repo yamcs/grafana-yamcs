@@ -37,6 +37,9 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     super(settings);
     this.yamcs = new YamcsClient(settings);
     this.dictionary = new Dictionary(this);
+    this.annotations = {
+
+    }
   }
 
   /**
