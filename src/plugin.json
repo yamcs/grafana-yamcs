@@ -4,6 +4,7 @@
   "id": "yamcs-yamcs-datasource",
   "category": "other",
   "metrics": true,
+  "annotations": true,
   "info": {
     "description": "Data source for Yamcs Mission Control",
     "author": {

@@ -6,6 +6,7 @@ import { DataSource } from '../../DataSource';
 import { changeQueryType, QueryTypeInfo, yamcsQueryTypes } from '../../queryInfo';
 import { QueryType, YamcsOptions, YamcsQuery } from '../../types';
 import { ParameterQueryEditor } from './ParameterQueryEditor';
+import { EventQueryEditor } from './EventQueryEditor';
 
 export interface Props extends QueryEditorProps<DataSource, YamcsQuery, YamcsOptions> {}
 
@@ -27,7 +28,7 @@ export class QueryEditor extends PureComponent<Props> {
     }
     switch (query.queryType) {
       case QueryType.ListEvents:
-        return null; // Nothing required
+        return <EventQueryEditor {...this.props} />;
       case QueryType.ParameterRanges:
       case QueryType.ParameterSamples:
       case QueryType.ParameterValue:

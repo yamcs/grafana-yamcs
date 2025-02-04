@@ -37,6 +37,9 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     super(settings);
     this.yamcs = new YamcsClient(settings);
     this.dictionary = new Dictionary(this);
+    this.annotations = {
+
+    }
   }
 
   /**
@@ -452,15 +455,23 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       stop: request.range!.to.toISOString(),
       limit: 200,
     });
+
+    // Resolve the variables in the scope
+    const source = query.source ? getTemplateSrv().replace(query.source, request.scopedVars) : undefined;
+    const type = query.type ? getTemplateSrv().replace(query.type, request.scopedVars) : undefined;
+
     for (const event of page.event || []) {
-      frame.add({
-        time: parseTime(event.generationTime),
-        message: event.message,
-        source: event.source,
-        type: event.type,
-        severity: event.severity,
-        seqNumber: event.seqNumber,
-      });
+      // Only filter on events that match the querry source and type if that is defined
+      if ((!source || event.source === source) && (!type || event.type === type)) {
+        frame.add({
+          time: parseTime(event.generationTime),
+          message: event.message,
+          source: event.source,
+          type: event.type,
+          severity: event.severity,
+          seqNumber: event.seqNumber,
+        });
+      }
     }
 
     return frame;
