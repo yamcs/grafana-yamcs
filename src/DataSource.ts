@@ -453,25 +453,21 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const page = await this.yamcs.listEvents({
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
+      source:  query.source ? getTemplateSrv().replace(query.source, request.scopedVars) : undefined,  // Resolve the variables in the scope
+      type: query.type ? getTemplateSrv().replace(query.type, request.scopedVars) : undefined,
       limit: 200,
     });
 
-    // Resolve the variables in the scope
-    const source = query.source ? getTemplateSrv().replace(query.source, request.scopedVars) : undefined;
-    const type = query.type ? getTemplateSrv().replace(query.type, request.scopedVars) : undefined;
-
     for (const event of page.event || []) {
-      // Only filter on events that match the querry source and type if that is defined
-      if ((!source || event.source === source) && (!type || event.type === type)) {
-        frame.add({
-          time: parseTime(event.generationTime),
-          message: event.message,
-          source: event.source,
-          type: event.type,
-          severity: event.severity,
-          seqNumber: event.seqNumber,
-        });
-      }
+      // Filtering on type and source should have happened on the yamcs server side. No additional filtering is needed
+      frame.add({
+        time: parseTime(event.generationTime),
+        message: event.message,
+        source: event.source,
+        type: event.type,
+        severity: event.severity,
+        seqNumber: event.seqNumber,
+      });
     }
 
     return frame;
