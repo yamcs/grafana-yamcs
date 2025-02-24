@@ -37,6 +37,9 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     super(settings);
     this.yamcs = new YamcsClient(settings);
     this.dictionary = new Dictionary(this);
+    this.annotations = {
+
+    }
   }
 
   /**
@@ -450,9 +453,13 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
     const page = await this.yamcs.listEvents({
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
+      source:  query.source ? getTemplateSrv().replace(query.source, request.scopedVars) : undefined,  // Resolve the variables in the scope
+      type: query.type ? getTemplateSrv().replace(query.type, request.scopedVars) : undefined,
       limit: 200,
     });
+
     for (const event of page.event || []) {
+      // Filtering on type and source should have happened on the yamcs server side. No additional filtering is needed
       frame.add({
         time: parseTime(event.generationTime),
         message: event.message,

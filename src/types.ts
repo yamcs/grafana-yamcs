@@ -52,6 +52,7 @@ export interface ParameterValueHistoryQuery extends YamcsQuery {
 export interface ListEventsQuery extends YamcsQuery {
   queryType: QueryType.ListEvents;
   source?: string;
+  type?: string;
 }
 
 export type EngType =

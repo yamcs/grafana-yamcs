@@ -83,6 +83,7 @@ export interface ListEventsOptions {
   stop?: string;
   q?: string;
   source?: string;
+  type?: string;
   next?: string;
   limit?: number;
 }
