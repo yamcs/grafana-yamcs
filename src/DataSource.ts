@@ -22,7 +22,7 @@ import {
   YamcsQuery,
 } from './types';
 import * as utils from './utils';
-import { Type, Value, YamcsClient } from './YamcsClient';
+import { ListEventsOptions, Type, Value, YamcsClient } from './YamcsClient';
 
 function parseTime(isostring: string): number {
   const date = new Date(Date.parse(isostring));
@@ -450,16 +450,21 @@ export class DataSource extends DataSourceApi<YamcsQuery, YamcsOptions> {
       ],
     });
 
-    const page = await this.yamcs.listEvents({
+    const listOptions: ListEventsOptions = {
       start: request.range!.from.toISOString(),
       stop: request.range!.to.toISOString(),
-      source:  query.source ? getTemplateSrv().replace(query.source, request.scopedVars) : undefined,  // Resolve the variables in the scope
-      type: query.type ? getTemplateSrv().replace(query.type, request.scopedVars) : undefined,
       limit: 200,
-    });
+    }
+    if (query.source) {
+      listOptions.source = getTemplateSrv().replace(query.source, request.scopedVars);
+    }
+    if (query.type) {
+      const queriedType = getTemplateSrv().replace(query.type, request.scopedVars);
+      listOptions.filter = `type="${queriedType}"`;
+    }
 
+    const page = await this.yamcs.listEvents(listOptions);
     for (const event of page.event || []) {
-      // Filtering on type and source should have happened on the yamcs server side. No additional filtering is needed
       frame.add({
         time: parseTime(event.generationTime),
         message: event.message,

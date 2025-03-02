@@ -1,38 +1,61 @@
 import { InlineField, Input } from '@grafana/ui';
+import { debounce } from 'lodash';
 import React, { PureComponent } from 'react';
 import { ListEventsQuery, ParameterSamplesQuery, QueryType, YamcsQuery } from '../../types';
 import { YamcsQueryEditorProps } from './types';
 
 type Props = YamcsQueryEditorProps<YamcsQuery | ParameterSamplesQuery | ListEventsQuery>;
 
-type State = {
-  loading: boolean;
-};
+interface State {
+  source?: string;
+  type?: string;
+}
 
 export class EventQueryEditor extends PureComponent<Props, State> {
-  state: State = {
-    loading: false,
-  };
+  state: State;
 
-  onSourceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  constructor(props: Props) {
+    super(props);
+    const { query } = this.props;
+    if (this.isListEventsQuery(query)) {
+      this.state = {
+        source: query.source || undefined,
+        type: query.type || undefined,
+      };
+    } else {
+      this.state = {};
+    }
+  }
+
+  onSourceChange = debounce((value: string | undefined) => {
     const { onChange, query, onRunQuery } = this.props;
 
     if (this.isListEventsQuery(query)) {
-      const source = event.target.value || undefined; // Avoid empty string, set to undefined
-      onChange({ ...query, source });
-      onRunQuery();
+      const newSource = value || undefined; // Avoid empty string, set to undefined
+      const changed = newSource !== this.state.source;
+      this.setState({ source: newSource }, () => {
+        if (changed) {
+          onChange({ ...query, source: newSource });
+          onRunQuery();
+        }
+      });
     }
-  };
+  }, 300);
 
-  onTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  onTypeChange = debounce((value: string | undefined) => {
     const { onChange, query, onRunQuery } = this.props;
 
     if (this.isListEventsQuery(query)) {
-      const type = event.target.value || undefined; // Avoid empty string, set to undefined
-      onChange({ ...query, type });
-      onRunQuery();
+      const newType = value || undefined; // Avoid empty string, set to undefined
+      const changed = newType !== this.state.type;
+      this.setState({ type: newType }, () => {
+        if (changed) {
+          onChange({ ...query, type: newType });
+          onRunQuery();
+        }
+      });
     }
-  };
+  }, 300);
 
   isListEventsQuery(query: YamcsQuery | ParameterSamplesQuery | ListEventsQuery): query is ListEventsQuery {
     return query.queryType === QueryType.ListEvents;
@@ -50,18 +73,18 @@ export class EventQueryEditor extends PureComponent<Props, State> {
         <div className="gf-form">
           <InlineField label="Source" labelWidth={14} grow={true}>
             <Input
-              value={query.source || ''} // Render undefined as an empty input
-              placeholder="(Optional) Enter source"
-              onChange={this.onSourceChange}
+              defaultValue={this.state.source}
+              placeholder="(Optional) Filter by source"
+              onChange={(evt) => this.onSourceChange((evt.target as any).value)}
             />
           </InlineField>
         </div>
         <div className="gf-form">
           <InlineField label="Type" labelWidth={14} grow={true}>
             <Input
-              value={query.type || ''} // Render undefined as an empty input
-              placeholder="(Optional) Enter type"
-              onChange={this.onTypeChange}
+              defaultValue={this.state.type}
+              placeholder="(Optional) Filter by type"
+              onChange={(evt) => this.onTypeChange((evt.target as any).value)}
             />
           </InlineField>
         </div>
