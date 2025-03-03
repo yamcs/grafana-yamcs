@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.1
+
+- Add source/type filter options to event query.
+- Allow to use this datasource for adding panel annotations, useful with an event query in particular.
+
 ## 2.4.0
 
 - Update to Grafana 11.x
